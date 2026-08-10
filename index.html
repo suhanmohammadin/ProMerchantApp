@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="google-adsense-account" content="ca-pub-5188217885189630">
-  <title>Solid Money App - Pro Merchant Suite</title>
+  <title>Solid Merchant App - Pro Merchant Suite</title>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -68,9 +68,17 @@
       border: 2px solid #ffffff;
     }
 
-    #smDrawerLogo, .transaction-row, #clearLedgerBtn {
+    #smDrawerLogo, .transaction-row, #clearLedgerBtn, #openDrawerBtn {
       user-select: none;
       -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    /* Prevent browser popup on draggable buttons */
+    .reorder-btn {
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
     }
 
     @media print {
@@ -146,6 +154,27 @@
     </div>
   </div>
 
+  <!-- POPUP MODAL: Button Visibility Manager -->
+  <div id="visibilityModalOverlay" class="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-[80] hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all flex flex-col p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 bg-slate-800 text-white rounded-xl flex items-center justify-center font-bold text-sm">
+            <span>⚙️</span>
+          </div>
+          <h3 class="font-extrabold text-slate-800 text-base">Manage Buttons</h3>
+        </div>
+        <button type="button" id="closeVisibilityModalBtn" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <div class="space-y-3 max-h-[60vh] overflow-y-auto" id="visibilityList">
+        <!-- Visibility switches injected via JS -->
+      </div>
+    </div>
+  </div>
+
   <!-- POPUP MODAL: Stock Alerts (Stock Below 10) -->
   <div id="alertsModalOverlay" class="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-4">
     <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all flex flex-col p-6 space-y-4">
@@ -180,7 +209,7 @@
             <span>SM</span>
           </div>
           <div>
-            <h2 id="appDrawerTitle" class="font-extrabold text-lg leading-none">Solid Money App</h2>
+            <h2 id="appDrawerTitle" class="font-extrabold text-lg leading-none">Solid Merchant App</h2>
             <p class="text-xs text-white/70 mt-1">Pro Merchant Suite</p>
           </div>
         </div>
@@ -427,7 +456,7 @@
   </div>
 
   <!-- FULL-SCREEN MODAL: Instant Transaction & Customer/Name Search -->
-  <div id="searchModalOverlay" class="fixed inset-0 bg-slate-900 z-50 hidden flex flex-col h-full w-full overflow-hidden">
+  <div id="searchModalOverlay" class="fixed inset-0 bg-slate-900 z-[60] hidden flex flex-col h-full w-full overflow-hidden">
     <div class="brand-gradient p-4 sm:p-5 text-white flex items-center justify-between shrink-0 shadow-lg">
       <div class="flex items-center gap-3">
         <div class="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-md">
@@ -653,6 +682,13 @@
 
     <div class="grow bg-slate-100 p-3 sm:p-6 overflow-y-auto max-w-4xl mx-auto w-full space-y-4 pb-24 sm:pb-6">
       <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+        
+        <!-- NEW SEARCH BUTTON INSIDE HISTORY -->
+        <button type="button" onclick="window.openSearchModal()" class="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold py-3 rounded-xl border border-blue-200 transition flex items-center justify-center gap-2 text-sm shadow-sm mb-3">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          Search by Name, Mobile, or Amount
+        </button>
+
         <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
           <span class="text-xs font-bold text-slate-600 uppercase tracking-wider w-full sm:w-auto">Filter Date:</span>
           <div class="flex items-center gap-2 w-full sm:w-auto">
@@ -780,14 +816,14 @@
   <header class="w-full max-w-2xl brand-gradient text-white pt-4 pb-6 px-4 rounded-b-3xl shadow-xl relative overflow-hidden">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <button type="button" id="openDrawerBtn" class="w-10 h-10 bg-white rounded-2xl flex items-center justify-center brand-text shadow-md transition-transform transform active:scale-90 focus:outline-none" aria-label="Open Menu">
+        <button type="button" id="openDrawerBtn" class="w-10 h-10 bg-white rounded-2xl flex items-center justify-center brand-text shadow-md transition-transform transform active:scale-90 focus:outline-none" aria-label="Open Menu" title="Hold for 5s to Manage Buttons">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path>
           </svg>
         </button>
 
         <div>
-          <h1 id="mainAppTitle" class="text-lg font-black tracking-tight leading-none">Solid Money App</h1>
+          <h1 id="mainAppTitle" class="text-lg font-black tracking-tight leading-none">Solid Merchant App</h1>
           <p class="text-white/80 text-[11px] font-medium mt-0.5">Pro Merchant Suite</p>
         </div>
       </div>
@@ -811,19 +847,19 @@
     
     <div class="flex items-center justify-between">
       <div>
-        <h2 class="text-base font-black text-slate-800 tracking-tight">Merchant Control Hub</h2>
-        <p class="text-xs text-slate-500 font-medium">Hold and drag any button to change its position.</p>
+        <h2 class="text-base font-black text-slate-800 tracking-tight">Merchant Controls</h2>
+        <p class="text-xs text-slate-500 font-medium">Made in India Made for India.</p>
       </div>
       <button type="button" id="alertsBtn" class="hidden text-[10px] font-bold text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-full border border-red-200 transition shadow-2xs flex items-center gap-1.5 cursor-pointer">
         <span>⚠️</span> <span>Alerts (&lt; 10)</span>
       </button>
     </div>
 
-    <!-- 7 VERTICAL COLOR-CODED REORDERABLE ACTION BUTTONS -->
+    <!-- VERTICAL COLOR-CODED REORDERABLE ACTION BUTTONS -->
     <div id="buttonContainer" class="flex flex-col space-y-3.5">
       
       <!-- 1. UPI Section -->
-      <button type="button" id="gridUpiBtn" draggable="true" class="reorder-btn group flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg shadow-purple-500/20 hover:scale-[1.01] active:scale-[0.99] transition duration-200 text-left relative overflow-hidden w-full cursor-grab active:cursor-grabbing">
+      <button type="button" id="gridUpiBtn" class="reorder-btn group flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg shadow-purple-500/20 hover:scale-[1.01] active:scale-[0.99] transition duration-200 text-left relative overflow-hidden w-full cursor-grab active:cursor-grabbing">
         <div class="flex items-center">
           <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center mr-4 shrink-0">
             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
@@ -833,11 +869,11 @@
             <span class="text-[10px] text-purple-100 mt-0.5 font-medium">Universal QR, VPA & Configuration</span>
           </div>
         </div>
-        <div class="text-white/60 text-xs font-mono px-2">⠿ Hold & Drag</div>
+        <div class="text-white/60 text-xs font-mono px-2">⠿ </div>
       </button>
 
       <!-- 2. Stock Section -->
-      <button type="button" id="gridStockBtn" draggable="true" onclick="document.getElementById('openMasterInventoryModalBtn').click()" class="reorder-btn group flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/20 hover:scale-[1.01] active:scale-[0.99] transition duration-200 text-left relative overflow-hidden w-full cursor-grab active:cursor-grabbing">
+      <button type="button" id="gridStockBtn" onclick="document.getElementById('openMasterInventoryModalBtn').click()" class="reorder-btn group flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/20 hover:scale-[1.01] active:scale-[0.99] transition duration-200 text-left relative overflow-hidden w-full cursor-grab active:cursor-grabbing">
         <div class="flex items-center">
           <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center mr-4 shrink-0">
             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
@@ -847,25 +883,11 @@
             <span class="text-[10px] text-emerald-100 mt-0.5 font-medium">Inventory & Rack Config</span>
           </div>
         </div>
-        <div class="text-white/60 text-xs font-mono px-2">⠿ Hold & Drag</div>
+        <div class="text-white/60 text-xs font-mono px-2">⠿ </div>
       </button>
 
-      <!-- 3. Search Section -->
-      <button type="button" id="gridSearchBtn" draggable="true" onclick="document.getElementById('openSearchModalBtn').click()" class="reorder-btn group flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-blue-500 to-cyan-600 text-white shadow-lg shadow-blue-500/20 hover:scale-[1.01] active:scale-[0.99] transition duration-200 text-left relative overflow-hidden w-full cursor-grab active:cursor-grabbing">
-        <div class="flex items-center">
-          <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center mr-4 shrink-0">
-            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          </div>
-          <div class="flex flex-col">
-            <span class="font-extrabold text-sm leading-tight">Search Section</span>
-            <span class="text-[10px] text-blue-100 mt-0.5 font-medium">Lookup Sales & Customers</span>
-          </div>
-        </div>
-        <div class="text-white/60 text-xs font-mono px-2">⠿ Hold & Drag</div>
-      </button>
-
-      <!-- 4. History Section -->
-      <button type="button" id="gridHistoryBtn" draggable="true" onclick="document.getElementById('openLedgerModalBtn').click()" class="reorder-btn group flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/20 hover:scale-[1.01] active:scale-[0.99] transition duration-200 text-left relative overflow-hidden w-full cursor-grab active:cursor-grabbing">
+      <!-- 3. History Section -->
+      <button type="button" id="gridHistoryBtn" onclick="document.getElementById('openLedgerModalBtn').click()" class="reorder-btn group flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/20 hover:scale-[1.01] active:scale-[0.99] transition duration-200 text-left relative overflow-hidden w-full cursor-grab active:cursor-grabbing">
         <div class="flex items-center">
           <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center mr-4 shrink-0">
             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -875,11 +897,11 @@
             <span class="text-[10px] text-amber-100 mt-0.5 font-medium">Daily Sales & Ledger Logs</span>
           </div>
         </div>
-        <div class="text-white/60 text-xs font-mono px-2">⠿ Hold & Drag</div>
+        <div class="text-white/60 text-xs font-mono px-2">⠿ </div>
       </button>
 
-      <!-- 5. POS Checkout -->
-      <button type="button" id="gridPosBtn" draggable="true" class="reorder-btn group flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-500/20 hover:scale-[1.01] active:scale-[0.99] transition duration-200 text-left relative overflow-hidden w-full cursor-grab active:cursor-grabbing">
+      <!-- 4. POS Checkout -->
+      <button type="button" id="gridPosBtn" class="reorder-btn group flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-500/20 hover:scale-[1.01] active:scale-[0.99] transition duration-200 text-left relative overflow-hidden w-full cursor-grab active:cursor-grabbing">
         <div class="flex items-center">
           <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center mr-4 shrink-0">
             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
@@ -889,25 +911,25 @@
             <span class="text-[10px] text-rose-100 mt-0.5 font-medium">Weight & Multi-Item Bill</span>
           </div>
         </div>
-        <div class="text-white/60 text-xs font-mono px-2">⠿ Hold & Drag</div>
+        <div class="text-white/60 text-xs font-mono px-2">⠿ </div>
       </button>
 
-      <!-- 6. Kitchen Display System -->
-      <button type="button" id="gridKdsBtn" draggable="true" class="reorder-btn group flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-red-600 to-rose-800 text-white shadow-lg shadow-red-500/20 hover:scale-[1.01] active:scale-[0.99] transition duration-200 text-left relative overflow-hidden w-full cursor-grab active:cursor-grabbing">
+      <!-- 5. Kitchen Display System -->
+      <button type="button" id="gridKdsBtn" class="reorder-btn group flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-red-600 to-rose-800 text-white shadow-lg shadow-red-500/20 hover:scale-[1.01] active:scale-[0.99] transition duration-200 text-left relative overflow-hidden w-full cursor-grab active:cursor-grabbing">
         <div class="flex items-center">
           <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center mr-4 shrink-0">
-            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 002-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
           </div>
           <div class="flex flex-col">
             <span class="font-extrabold text-sm leading-tight">Kitchen System (KDS)</span>
             <span class="text-[10px] text-red-100 mt-0.5 font-medium">Live Order Prep Routing</span>
           </div>
         </div>
-        <div class="text-white/60 text-xs font-mono px-2">⠿ Hold & Drag</div>
+        <div class="text-white/60 text-xs font-mono px-2">⠿ </div>
       </button>
 
-      <!-- 7. Standee Hub (Hidden) -->
-      <button type="button" id="gridStandeeBtn" draggable="true" class="hidden reorder-btn group items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-slate-700 to-slate-900 text-white shadow-lg shadow-slate-900/20 hover:scale-[1.01] active:scale-[0.99] transition duration-200 text-left relative overflow-hidden w-full cursor-grab active:cursor-grabbing">
+      <!-- 6. Standee Hub -->
+      <button type="button" id="gridStandeeBtn" class="hidden reorder-btn group items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-slate-700 to-slate-900 text-white shadow-lg shadow-slate-900/20 hover:scale-[1.01] active:scale-[0.99] transition duration-200 text-left relative overflow-hidden w-full cursor-grab active:cursor-grabbing">
         <div class="flex items-center">
           <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center mr-4 shrink-0">
             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
@@ -917,7 +939,7 @@
             <span class="text-[10px] text-slate-300 mt-0.5 font-medium">Generate, Print & Download</span>
           </div>
         </div>
-        <div class="text-white/60 text-xs font-mono px-2">⠿ Hold & Drag</div>
+        <div class="text-white/60 text-xs font-mono px-2">⠿ </div>
       </button>
 
     </div>
@@ -973,14 +995,7 @@
       element.classList.add('ios-lookup-active');
     }
 
-    const openDrawerBtn = document.getElementById('openDrawerBtn');
     const smDrawerLogo = document.getElementById('smDrawerLogo');
-
-    openDrawerBtn.addEventListener('click', () => {
-      triggerIosPulse(openDrawerBtn);
-      openDrawer();
-    });
-
     let smLogoPressTimer = null;
 
     function handleLogoLongPress() {
@@ -1010,6 +1025,116 @@
       smDrawerLogo.addEventListener('touchend', cancelLogoPress);
       smDrawerLogo.addEventListener('touchcancel', cancelLogoPress);
     }
+
+    // --- MANAGE BUTTONS (VISIBILITY) LOGIC ---
+    const defaultVisibility = {
+      'gridUpiBtn': true,
+      'gridStockBtn': true,
+      'gridHistoryBtn': true,
+      'gridPosBtn': true,
+      'gridKdsBtn': true,
+      'gridStandeeBtn': false
+    };
+
+    const buttonNames = {
+      'gridUpiBtn': 'UPI Section',
+      'gridStockBtn': 'Stock Section',
+      'gridHistoryBtn': 'History Section',
+      'gridPosBtn': 'POS Checkout',
+      'gridKdsBtn': 'Kitchen System (KDS)',
+      'gridStandeeBtn': 'Standee Hub'
+    };
+
+    function getVisibilityState() {
+      return JSON.parse(localStorage.getItem('buttonVisibility')) || defaultVisibility;
+    }
+
+    function saveVisibilityState(state) {
+      localStorage.setItem('buttonVisibility', JSON.stringify(state));
+    }
+
+    function applyVisibility() {
+      const state = getVisibilityState();
+      for (const [id, isVisible] of Object.entries(state)) {
+        const btn = document.getElementById(id);
+        if (btn) {
+          if (isVisible) {
+            btn.classList.remove('hidden');
+            btn.classList.add('flex');
+          } else {
+            btn.classList.add('hidden');
+            btn.classList.remove('flex');
+          }
+        }
+      }
+    }
+
+    applyVisibility();
+
+    // 5-Second Hold on Menu Button
+    let menuHoldTimer;
+    let isMenuLongPress = false;
+    const openDrawerBtn = document.getElementById('openDrawerBtn');
+    const visibilityModalOverlay = document.getElementById('visibilityModalOverlay');
+    const closeVisibilityModalBtn = document.getElementById('closeVisibilityModalBtn');
+
+    function openVisibilityManager() {
+      const state = getVisibilityState();
+      const listContainer = document.getElementById('visibilityList');
+      listContainer.innerHTML = '';
+      
+      for (const [id, isVisible] of Object.entries(state)) {
+        const name = buttonNames[id] || id;
+        listContainer.innerHTML += `
+          <label class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-100 transition">
+            <span class="text-sm font-bold text-slate-700">${name}</span>
+            <input type="checkbox" class="sr-only peer" ${isVisible ? 'checked' : ''} onchange="toggleButtonVisibility('${id}', this.checked)">
+            <div class="w-10 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600 relative"></div>
+          </label>
+        `;
+      }
+      toggleModal(visibilityModalOverlay, true);
+    }
+
+    window.toggleButtonVisibility = function(id, isVisible) {
+      const state = getVisibilityState();
+      state[id] = isVisible;
+      saveVisibilityState(state);
+      applyVisibility();
+    };
+
+    closeVisibilityModalBtn.addEventListener('click', () => {
+      toggleModal(visibilityModalOverlay, false);
+    });
+
+    const startMenuHold = (e) => {
+      isMenuLongPress = false;
+      menuHoldTimer = setTimeout(() => {
+        isMenuLongPress = true;
+        if (navigator.vibrate) navigator.vibrate(100);
+        openVisibilityManager();
+      }, 5000);
+    };
+
+    const cancelMenuHold = () => clearTimeout(menuHoldTimer);
+
+    openDrawerBtn.addEventListener('mousedown', startMenuHold);
+    openDrawerBtn.addEventListener('mouseup', cancelMenuHold);
+    openDrawerBtn.addEventListener('mouseleave', cancelMenuHold);
+    openDrawerBtn.addEventListener('touchstart', startMenuHold, {passive: true});
+    openDrawerBtn.addEventListener('touchend', cancelMenuHold);
+    openDrawerBtn.addEventListener('touchcancel', cancelMenuHold);
+
+    openDrawerBtn.addEventListener('click', (e) => {
+      if (isMenuLongPress) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      triggerIosPulse(openDrawerBtn);
+      openDrawer();
+    });
+
 
     const pinAuthModal = document.getElementById('pinAuthModal');
     const pinInput = document.getElementById('pinInput');
@@ -1159,8 +1284,62 @@
       const buttons = container.querySelectorAll('.reorder-btn');
       buttons.forEach(btn => {
         let isDragging = false;
+        let dragHoldTimer = null;
 
+        // Block Context Menu (Popup) on hold
+        btn.addEventListener('contextmenu', (e) => {
+          e.preventDefault();
+        });
+
+        // 1. 5-Second Hold Logic
+        const startDragHold = (e) => {
+          if (isDragging) return;
+          clearTimeout(dragHoldTimer);
+          
+          dragHoldTimer = setTimeout(() => {
+            btn.setAttribute('draggable', 'true');
+            btn.dataset.isTouchDraggable = 'true';
+            
+            // Visual/Haptic Feedback
+            btn.style.transform = "scale(1.02)";
+            if (navigator.vibrate) navigator.vibrate(100);
+            
+            // Replaced alert with a quiet visual cue
+          }, 5000); // 5000 milliseconds = 5 seconds
+        };
+
+        const cancelDragHold = () => {
+          clearTimeout(dragHoldTimer);
+          btn.style.transform = "";
+        };
+
+        // Attach hold timers for Desktop and Mobile
+        btn.addEventListener('mousedown', startDragHold);
+        btn.addEventListener('mouseup', cancelDragHold);
+        btn.addEventListener('mouseleave', cancelDragHold);
+
+        btn.addEventListener('touchstart', (e) => {
+          draggedItem = btn; // Set context for touch
+          startDragHold(e);
+        }, {passive: true});
+        
+        btn.addEventListener('touchend', () => {
+          cancelDragHold();
+          if(isDragging) {
+             // Reset state when dropping on mobile
+             btn.dataset.isTouchDraggable = 'false';
+             draggedItem = null;
+             saveButtonOrder();
+          }
+        });
+        btn.addEventListener('touchcancel', cancelDragHold);
+
+        // 2. Desktop HTML5 Drag Events
         btn.addEventListener('dragstart', (e) => {
+          if (btn.getAttribute('draggable') !== 'true') {
+            e.preventDefault();
+            return;
+          }
           isDragging = true;
           draggedItem = btn;
           setTimeout(() => btn.classList.add('opacity-40'), 0);
@@ -1169,6 +1348,7 @@
         btn.addEventListener('dragend', (e) => {
           isDragging = false;
           btn.classList.remove('opacity-40');
+          btn.setAttribute('draggable', 'false'); // Relock dragging after drop
           draggedItem = null;
           saveButtonOrder();
         });
@@ -1184,8 +1364,9 @@
           }
         });
 
+        // 3. Normal Click Events
         btn.addEventListener('click', (e) => {
-          if (isDragging) return;
+          if (isDragging || btn.getAttribute('draggable') === 'true') return;
           const id = btn.id;
           if (id === 'gridUpiBtn') toggleModal(upiConfigModalOverlay, true);
           else if (id === 'gridStandeeBtn') {
@@ -1195,14 +1376,16 @@
           else if (id === 'gridKdsBtn') toggleModal(document.getElementById('kdsModalOverlay'), true);
         });
 
-        btn.addEventListener('touchstart', (e) => {
-          draggedItem = btn;
-        }, {passive: true});
-
+        // 4. Mobile Touch Drag Events
         btn.addEventListener('touchmove', (e) => {
+          // Block touch moving unless the 5-second hold unlocked it
+          if (btn.dataset.isTouchDraggable !== 'true') return;
+          
           e.preventDefault();
+          isDragging = true;
           const touch = e.touches[0];
           const target = document.elementFromPoint(touch.clientX, touch.clientY);
+          
           if (target && target.closest('.reorder-btn') && target.closest('.reorder-btn') !== draggedItem) {
             const targetBtn = target.closest('.reorder-btn');
             const allBtns = [...container.querySelectorAll('.reorder-btn')];
@@ -1216,10 +1399,6 @@
           }
         }, {passive: false});
 
-        btn.addEventListener('touchend', () => {
-          draggedItem = null;
-          saveButtonOrder();
-        });
       });
     }
 
@@ -1387,6 +1566,7 @@
         toggleModal(searchModalOverlay, false);
         toggleModal(authModalOverlay, false);
         toggleModal(alertsModalOverlay, false);
+        toggleModal(visibilityModalOverlay, false);
         toggleModal(document.getElementById('kdsModalOverlay'), false);
         closeQrModal();
         closeDrawer();
@@ -1444,7 +1624,6 @@
     });
 
     const searchModalOverlay = document.getElementById('searchModalOverlay');
-    const openSearchModalBtn = document.getElementById('openSearchModalBtn');
     const closeSearchModalBtn = document.getElementById('closeSearchModalBtn');
     const liveSearchInput = document.getElementById('liveSearchInput');
     const searchTableBody = document.getElementById('searchTableBody');
@@ -2467,7 +2646,7 @@
         ctx.fillStyle = activeTheme.primary;
         ctx.font = `800 ${22 * SCALE}px 'Plus Jakarta Sans', sans-serif`;
         ctx.textBaseline = "alphabetic";
-        ctx.fillText("Solid Money App", centerX, 102 * SCALE);
+        ctx.fillText("Solid Merchant App", centerX, 102 * SCALE);
 
         ctx.font = `700 ${13.5 * SCALE}px 'Plus Jakarta Sans', sans-serif`;
         const textWidth = ctx.measureText(merchant).width;
