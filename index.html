@@ -1,0 +1,2583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="google-adsense-account" content="ca-pub-5188217885189630">
+  <title>Solid Money App - Pro Merchant Suite</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- QRCode.js Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .theme-purple { --primary: #5f259f; --primary-dark: #391163; --accent: #eb7c28; }
+    .theme-blue { --primary: #002e6e; --primary-dark: #00193d; --accent: #00baf2; }
+    .theme-teal { --primary: #00796b; --primary-dark: #004d40; --accent: #00bfa5; }
+    .theme-emerald { --primary: #047857; --primary-dark: #064e3b; --accent: #10b981; }
+    .theme-dark { --primary: #0f172a; --primary-dark: #020617; --accent: #6366f1; }
+
+    .brand-gradient {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    }
+    .brand-text {
+      color: var(--primary);
+    }
+    .brand-border {
+      border-color: var(--primary);
+    }
+    .brand-bg {
+      background-color: var(--primary);
+    }
+
+    @keyframes iosPulseRing {
+      0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.9), 0 0 0 0 rgba(235, 124, 40, 0.8);
+      }
+      50% {
+        transform: scale(1.12);
+        box-shadow: 0 0 0 12px rgba(255, 255, 255, 0), 0 0 20px 8px rgba(235, 124, 40, 0.6);
+      }
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0), 0 0 0 0 rgba(235, 124, 40, 0);
+      }
+    }
+
+    .ios-lookup-active {
+      animation: iosPulseRing 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      border: 2px solid #ffffff;
+    }
+
+    #smDrawerLogo, .transaction-row, #clearLedgerBtn {
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    @media print {
+      body * { visibility: hidden; }
+      #printableArea, #printableArea * { visibility: visible; }
+      #printableArea { position: absolute; left: 0; top: 0; width: 100%; display: flex; justify-content: center; }
+    }
+  </style>
+</head>
+<body class="theme-purple bg-slate-100 text-slate-800 min-h-screen flex flex-col items-center justify-between antialiased selection:bg-purple-500 selection:text-white pb-6">
+
+  <!-- PIN Authentication Modal Overlay -->
+  <div id="pinAuthModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-[100]">
+    <div class="bg-white rounded-3xl shadow-2xl p-6 md:p-8 max-w-sm w-full text-center space-y-4 border border-slate-100">
+      <div class="w-12 h-12 bg-purple-100 brand-text rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 002-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+        </svg>
+      </div>
+      <div>
+        <h2 class="text-xl font-black text-slate-800">Authentication Required</h2>
+        <p class="text-xs text-slate-500 mt-1 font-medium">Please Contact +91 9133359954 for pin to access the application.</p>
+      </div>
+      
+      <form id="pinForm" onsubmit="return false;" class="space-y-3">
+        <input type="password" id="pinInput" placeholder="Enter PIN" maxlength="6" inputmode="numeric"
+          class="w-full text-center tracking-widest text-lg font-mono px-4 py-3 border border-slate-300 rounded-2xl focus:ring-2 focus:ring-purple-600 outline-none transition bg-slate-50 font-bold" />
+        <p id="pinErrorMsg" class="text-xs text-red-500 hidden font-bold">Incorrect PIN! Try again.</p>
+        <button type="button" id="submitPinBtn"
+          class="w-full brand-bg hover:opacity-95 text-white font-bold py-3 rounded-2xl shadow-lg transition duration-200">
+          Unlock App
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- POPUP MODAL: Firebase Cloud Login & Signup -->
+  <div id="authModalOverlay" class="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all flex flex-col p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 brand-bg text-white rounded-xl flex items-center justify-center font-bold text-sm">
+            <span>☁️</span>
+          </div>
+          <h3 class="font-extrabold text-slate-800 text-base">Cloud Account Sync</h3>
+        </div>
+        <button type="button" id="closeAuthModalBtn" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <div class="space-y-3">
+        <p class="text-xs text-slate-500">Sign in or create an account to securely sync your live inventory and sales history across all your devices.</p>
+        <div>
+          <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Email Address</label>
+          <input type="email" id="userEmailInput" placeholder="e.g. yourname@gmail.com" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-purple-600 bg-slate-50/50 focus:bg-white" />
+        </div>
+        <div>
+          <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Password</label>
+          <input type="password" id="userPasswordInput" placeholder="Enter secure password" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-purple-600 bg-slate-50/50 focus:bg-white" />
+        </div>
+        <p id="firebaseErrorMsg" class="text-xs text-red-500 font-bold hidden"></p>
+        
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button type="button" id="firebaseLoginBtn" class="w-full brand-bg hover:opacity-90 text-white font-bold py-3 rounded-2xl text-xs shadow-md transition">
+            Sign In
+          </button>
+          <button type="button" id="firebaseSignupBtn" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-2xl text-xs shadow-md transition">
+            Sign Up
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP MODAL: Stock Alerts (Stock Below 10) -->
+  <div id="alertsModalOverlay" class="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all flex flex-col p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 bg-red-100 text-red-600 rounded-xl flex items-center justify-center font-bold text-sm">
+            <span>⚠️</span>
+          </div>
+          <h3 class="font-extrabold text-slate-800 text-base">Low Stock Alerts (&lt; 10)</h3>
+        </div>
+        <button type="button" id="closeAlertsModalBtn" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <div class="space-y-3">
+        <p class="text-xs text-slate-500">The following inventory items have stock levels below 10 units:</p>
+        <div id="lowStockList" class="divide-y divide-slate-100 max-h-60 overflow-y-auto border border-slate-200 rounded-2xl bg-slate-50 p-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Side Navigation Drawer Backdrop -->
+  <div id="drawerOverlay" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 hidden transition-opacity duration-300 opacity-0"></div>
+
+  <!-- Side Navigation Drawer -->
+  <aside id="sideDrawer" class="fixed top-0 left-0 h-full w-80 bg-white z-50 shadow-2xl transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between">
+    <div>
+      <div class="brand-gradient p-6 text-white flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div id="smDrawerLogo" class="w-10 h-10 bg-white rounded-xl flex items-center justify-center brand-text font-black text-lg shadow-inner cursor-pointer" title="SM Logo (Hold 5s for PIN Lock)">
+            <span>SM</span>
+          </div>
+          <div>
+            <h2 id="appDrawerTitle" class="font-extrabold text-lg leading-none">Solid Money App</h2>
+            <p class="text-xs text-white/70 mt-1">Pro Merchant Suite</p>
+          </div>
+        </div>
+        <button id="closeDrawerBtn" class="text-white/80 hover:text-white p-1 rounded-lg hover:bg-white/10 transition">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <div class="p-4 bg-purple-50/50 border-b border-purple-100 flex items-center justify-between">
+        <div class="flex items-center gap-2.5 overflow-hidden">
+          <div id="userAvatar" class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600 shrink-0">
+            👤
+          </div>
+          <div class="truncate">
+            <span id="accountEmailLabel" class="block text-xs font-bold text-slate-800 truncate">Not Signed In</span>
+            <span id="accountSyncBadge" class="text-[10px] text-slate-500 font-medium">Local Storage Active</span>
+          </div>
+        </div>
+        <button type="button" id="openAuthModalBtn" class="text-xs font-bold brand-text hover:underline px-2.5 py-1 bg-white border border-purple-200 rounded-lg shadow-2xs shrink-0">
+          Sign In
+        </button>
+      </div>
+
+      <nav class="p-4 space-y-2">
+        <button type="button" id="openMasterInventoryModalBtn" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-2xl transition text-left">
+          <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+          Item & Stock Configurator
+        </button>
+        <button type="button" id="openLedgerModalBtn" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-2xl transition text-left">
+          <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+          Daily Sales & History
+        </button>
+      </nav>
+    </div>
+
+    <div class="p-4 border-t border-slate-100 text-xs text-slate-400 text-center font-medium">
+      SMGC PVT LTD • v4.6 Pro POS
+    </div>
+  </aside>
+
+  <!-- FULL-SCREEN MODAL: ⚙️ UPI Generator Configuration -->
+  <div id="upiConfigModalOverlay" class="fixed inset-0 bg-slate-900 z-50 hidden flex flex-col h-full w-full overflow-hidden">
+    <div class="brand-gradient p-4 sm:p-5 text-white flex items-center justify-between shrink-0 shadow-lg">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-md">
+          <span class="text-base">⚙️</span>
+        </div>
+        <div>
+          <h3 class="font-extrabold text-base sm:text-lg leading-none">UPI Generator Configuration</h3>
+          <p class="text-[11px] text-white/70 mt-1">Standee Mode & All-In-One QR Suite</p>
+        </div>
+      </div>
+      <button type="button" id="closeUpiConfigModalBtn" class="text-white/80 hover:text-white p-2 rounded-xl bg-white/10 hover:bg-white/20 transition flex items-center gap-1 text-xs font-bold">
+        <span>Close</span>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <div class="grow bg-slate-100 p-3 sm:p-6 overflow-y-auto max-w-4xl mx-auto w-full space-y-4 pb-24 sm:pb-6">
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+        
+        <div class="flex items-center justify-between bg-purple-50/70 p-3 rounded-xl border border-purple-100">
+          <span class="text-xs font-extrabold text-purple-900">Active Mode Selector:</span>
+          <div class="flex gap-2">
+            <button type="button" id="cardStandeeBtn" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-white brand-text shadow-2xs hover:bg-purple-100 transition">Standee Mode</button>
+            <button type="button" id="cardGenericBtn" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-white text-slate-700 shadow-2xs hover:bg-purple-100 transition">All-In-One QR</button>
+          </div>
+        </div>
+
+        <form id="qrForm" class="space-y-4" onsubmit="return false;">
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label for="merchantName" class="block text-xs font-extrabold uppercase tracking-wider text-slate-600">
+                Merchant / Name <span class="text-red-500">*</span>
+              </label>
+              <label class="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-600 select-none">
+                <span id="nameFixLabel">Fix Name</span>
+                <input type="checkbox" id="fixNameToggle" class="sr-only peer">
+                <div class="w-8 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-600 relative"></div>
+              </label>
+            </div>
+            <input type="text" id="merchantName" value="" placeholder="e.g. XYZ Traders" required class="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-purple-600 outline-none transition bg-slate-50/50 focus:bg-white font-semibold" />
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label id="upiFieldLabel" for="upiInput" class="block text-xs font-extrabold uppercase tracking-wider text-slate-600">
+                UPI ID / VPA <span class="text-red-500">*</span>
+              </label>
+              <label class="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-600 select-none">
+                <span id="upiFixLabel">Fix UPI ID</span>
+                <input type="checkbox" id="fixUpiToggle" class="sr-only peer">
+                <div class="w-8 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-600 relative"></div>
+              </label>
+            </div>
+            <input type="text" id="upiInput" value="" maxlength="9" placeholder="e.g. Terminal ID 9 Digit" required class="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-purple-600 outline-none transition bg-slate-50/50 focus:bg-white font-mono font-bold" />
+            <p class="text-[11px] text-slate-400 mt-1.5 flex items-center justify-between font-medium">
+              <span>Payload VPA:</span>
+              <span id="vpaPreview" class="font-mono brand-text font-bold bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">-</span>
+            </p>
+          </div>
+
+          <div>
+            <label for="amount" class="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1">
+              Fixed Amount (₹) <span class="text-slate-400 font-normal">(Optional)</span>
+            </label>
+            <input type="number" id="amount" inputmode="decimal" step="0.01" min="1" placeholder="Dynamic Input" class="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-purple-600 outline-none transition bg-slate-50/50 focus:bg-white font-mono font-bold brand-text" />
+            
+            <div class="flex flex-wrap items-center gap-2 mt-2.5">
+              <span class="text-[10px] font-bold uppercase text-slate-400 w-full sm:w-auto">Quick Add:</span>
+              <div class="flex flex-wrap gap-1.5 w-full sm:w-auto">
+                <button type="button" class="quick-amt-btn px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-bold text-slate-700 transition grow sm:grow-0" data-amt="50">₹50</button>
+                <button type="button" class="quick-amt-btn px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-bold text-slate-700 transition grow sm:grow-0" data-amt="100">₹100</button>
+                <button type="button" class="quick-amt-btn px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-bold text-slate-700 transition grow sm:grow-0" data-amt="200">₹200</button>
+                <button type="button" class="quick-amt-btn px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-bold text-slate-700 transition grow sm:grow-0" data-amt="500">₹500</button>
+                <button type="button" id="clearAmtBtn" class="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-bold transition grow sm:grow-0">Clear</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="rawQrWrapper" class="hidden"></div>
+
+          <button type="button" id="renderBtn" class="w-full brand-bg hover:opacity-95 text-white font-black py-4 rounded-2xl shadow-xl transition duration-200 active:scale-[0.99] flex items-center justify-center gap-2 text-base">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            Generate Standee & QR
+          </button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- FULL-SCREEN MODAL: Item Master / Inventory Configurator -->
+  <div id="masterInventoryModalOverlay" class="fixed inset-0 bg-slate-900 z-50 hidden flex flex-col h-full w-full overflow-hidden">
+    <div class="brand-gradient p-4 sm:p-5 text-white flex items-center justify-between shrink-0 shadow-lg">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-md">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+        </div>
+        <div>
+          <h3 class="font-extrabold text-base sm:text-lg leading-none">Item & Stock Configurator</h3>
+          <p class="text-[11px] text-white/70 mt-1">Inventory Management</p>
+        </div>
+      </div>
+      <button type="button" id="closeMasterInventoryModalBtn" class="text-white/80 hover:text-white p-2 rounded-xl bg-white/10 hover:bg-white/20 transition flex items-center gap-1 text-xs font-bold">
+        <span>Close</span>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <div class="grow bg-slate-100 p-3 sm:p-6 overflow-y-auto max-w-4xl mx-auto w-full space-y-4 pb-24 sm:pb-6">
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+        <div>
+          <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 flex items-center gap-2">
+            <span>📦</span> Stock Management
+          </h4>
+          <p class="text-[11px] text-slate-500 mt-0.5">Manage and add stock items with custom rack details, pricing & quantity.</p>
+        </div>
+        <button type="button" id="openAddStockModalBtn" class="brand-bg hover:opacity-90 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs transition shadow-md flex items-center gap-1.5 shrink-0">
+          <span>+ Add Stock Item</span>
+        </button>
+      </div>
+
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+          <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-500">Stock Holder & Remaining Quantities</h4>
+          <div class="relative w-full sm:w-64">
+            <input type="text" id="stockSearchInput" placeholder="Search by rack or item name..." class="w-full px-3 py-1.5 pl-8 border border-slate-300 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-purple-600 bg-slate-50/50 focus:bg-white" />
+            <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </div>
+        </div>
+        
+        <div class="bg-white rounded-2xl overflow-hidden max-h-[55vh] overflow-y-auto divide-y divide-slate-100 sm:divide-y-0 sm:border sm:border-slate-200">
+          <table class="w-full text-left text-xs hidden sm:table">
+            <thead class="bg-slate-100 text-slate-600 font-bold uppercase tracking-wider text-[10px] sticky top-0">
+              <tr>
+                <th class="p-2.5">Rack Sr. No.</th>
+                <th class="p-2.5">Item Name</th>
+                <th class="p-2.5 text-right">Rate (₹)</th>
+                <th class="p-2.5 text-center">Remaining Stock</th>
+                <th class="p-2.5 text-center">Action / Edit</th>
+              </tr>
+            </thead>
+            <tbody id="masterInventoryTableBody" class="divide-y divide-slate-100 font-medium"></tbody>
+          </table>
+
+          <div id="masterInventoryMobileList" class="sm:hidden space-y-3 p-1"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP MODAL: Add New Stock Item Options -->
+  <div id="addStockModalOverlay" class="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-[60] hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all flex flex-col p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 brand-bg text-white rounded-xl flex items-center justify-center font-bold text-sm">
+            <span>➕</span>
+          </div>
+          <h3 class="font-extrabold text-slate-800 text-base">Add New Stock Item</h3>
+        </div>
+        <button type="button" id="closeAddStockModalBtn" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Rack Sr. No.</label>
+          <input type="text" id="masterRackSrNo" placeholder="e.g. R-105" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-purple-600 bg-slate-50/50 focus:bg-white font-mono" />
+        </div>
+
+        <div>
+          <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Item Name</label>
+          <input type="text" id="masterItemName" placeholder="e.g. Paracetamol Tablets" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-purple-600 bg-slate-50/50 focus:bg-white" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Rate / Unit (₹)</label>
+            <input type="number" id="masterItemRate" inputmode="decimal" placeholder="e.g. 50" step="0.01" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-xs font-mono font-bold outline-none focus:ring-2 focus:ring-purple-600 bg-slate-50/50 focus:bg-white text-emerald-600" />
+          </div>
+          <div>
+            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Quantity & Unit</label>
+            <div class="flex">
+              <input type="number" id="masterItemStock" inputmode="decimal" placeholder="Qty" step="0.01" class="w-full px-2 py-2.5 border border-r-0 border-slate-300 rounded-l-xl text-xs font-mono font-bold outline-none focus:ring-2 focus:ring-purple-600 bg-slate-50/50 focus:bg-white" />
+              <select id="masterItemUnit" class="bg-slate-100 border border-slate-300 rounded-r-xl px-2 text-xs font-bold text-slate-700 outline-none cursor-pointer">
+                <option value="pcs">Pcs</option>
+                <option value="kg">Kg</option>
+                <option value="l">Litre</option>
+                <option value="ml">Ml</option>
+                <option value="grams">Grams</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" id="saveMasterItemBtn" class="w-full brand-bg hover:opacity-90 text-white font-extrabold py-3 rounded-2xl text-xs shadow-md transition flex items-center justify-center gap-1.5 mt-2">
+          <span>Save & Add Stock Item</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FULL-SCREEN MODAL: Instant Transaction & Customer/Name Search -->
+  <div id="searchModalOverlay" class="fixed inset-0 bg-slate-900 z-50 hidden flex flex-col h-full w-full overflow-hidden">
+    <div class="brand-gradient p-4 sm:p-5 text-white flex items-center justify-between shrink-0 shadow-lg">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-md">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+        <div>
+          <h3 class="font-extrabold text-base sm:text-lg leading-none">Search Transactions</h3>
+          <p class="text-[11px] text-white/70 mt-1"></p>
+        </div>
+      </div>
+      <button type="button" id="closeSearchModalBtn" class="text-white/80 hover:text-white p-2 rounded-xl bg-white/10 hover:bg-white/20 transition flex items-center gap-1 text-xs font-bold">
+        <span>Close</span>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <div class="grow bg-slate-100 p-3 sm:p-6 overflow-y-auto max-w-4xl mx-auto w-full space-y-4 pb-24 sm:pb-6">
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+        <div class="relative">
+          <input type="text" id="liveSearchInput" placeholder="Enter Name, Mobile, or Amount..." class="w-full px-4 py-3 pl-10 border border-slate-300 rounded-2xl text-xs font-semibold outline-none focus:ring-2 focus:ring-purple-600 bg-slate-50/50 focus:bg-white font-mono" />
+          <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+
+        <div class="border border-slate-200 rounded-2xl overflow-hidden min-h-[220px] max-h-[55vh] overflow-y-auto bg-white">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-100 text-slate-600 font-bold uppercase tracking-wider text-[10px] sticky top-0">
+              <tr>
+                <th class="p-2.5">Date / Time</th>
+                <th class="p-2.5">Customer & Mobile</th>
+                <th class="p-2.5 text-right">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="searchTableBody" class="divide-y divide-slate-100 font-medium">
+              <tr><td colspan="3" class="p-8 text-center text-slate-400 italic">Type above to search transactions...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FULL-SCREEN MODAL: Multi-Item POS Calculator -->
+  <div id="calcModalOverlay" class="fixed inset-0 bg-slate-900 z-50 hidden flex flex-col h-full w-full overflow-hidden">
+    <div class="brand-gradient p-4 sm:p-5 text-white flex items-center justify-between shrink-0 shadow-lg">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-md">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+        </div>
+        <div>
+          <h3 class="font-extrabold text-base sm:text-lg leading-none">Weight & Billing POS</h3>
+          <p class="text-[11px] text-white/70 mt-1">Checkout Mode</p>
+        </div>
+      </div>
+      <button type="button" id="closeCalcModalBtn" class="text-white/80 hover:text-white p-2 rounded-xl bg-white/10 hover:bg-white/20 transition flex items-center gap-1 text-xs font-bold">
+        <span>Close</span>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <div class="grow bg-slate-100 p-3 sm:p-6 overflow-y-auto max-w-4xl mx-auto w-full space-y-4 pb-24 sm:pb-6">
+      <div class="grid grid-cols-2 gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-xs">
+        <div>
+          <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Customer Name</label>
+          <input type="text" id="custName" placeholder="e.g. XYZ" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-purple-600 bg-slate-50/50 focus:bg-white" />
+        </div>
+        <div>
+          <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">WhatsApp Mobile</label>
+          <input type="tel" id="custPhone" inputmode="tel" placeholder="e.g. 9876543210" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-mono font-bold outline-none focus:ring-2 focus:ring-purple-600 bg-slate-50/50 focus:bg-white" />
+        </div>
+      </div>
+
+      <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+        <div class="flex items-center justify-between">
+          <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+            Item Name <span class="text-slate-400 font-normal">(Type to search stock or rack)</span>
+          </label>
+          <label class="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-600 select-none">
+            <span class="text-[10px] uppercase text-purple-700 font-extrabold">Flat Amount (₹)</span>
+            <input type="checkbox" id="flatPriceToggle" class="sr-only peer">
+            <div class="w-7 h-3.5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-2.5 after:w-2.5 after:transition-all peer-checked:bg-purple-600 relative"></div>
+          </label>
+        </div>
+
+        <div class="relative">
+          <input type="text" id="itemNameInput" placeholder="e.g. Apples" autocomplete="off" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-purple-600 bg-slate-50/50 focus:bg-white" />
+          
+          <div id="suggestionsBox" class="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-20 max-h-48 overflow-y-auto hidden divide-y divide-slate-100 text-xs"></div>
+        </div>
+
+        <div class="grid grid-cols-12 gap-2">
+          <div id="rateContainer" class="col-span-5">
+            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Rate / Unit (₹)</label>
+            <input type="number" id="ratePerKg" inputmode="decimal" placeholder="e.g. 120" step="0.01" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm font-mono outline-none focus:ring-2 focus:ring-purple-600 bg-slate-50/50 focus:bg-white" />
+          </div>
+
+          <div id="flatPriceContainer" class="col-span-10 hidden">
+            <label class="text-[10px] font-bold uppercase tracking-wider text-purple-700 block mb-1">Direct Total Cost (₹)</label>
+            <input type="number" id="flatPriceInput" inputmode="decimal" placeholder="e.g. 50" step="0.01" class="w-full px-3 py-2 border border-purple-300 rounded-xl text-sm font-mono font-bold text-purple-900 outline-none focus:ring-2 focus:ring-purple-600 bg-purple-50/30" />
+          </div>
+
+          <div id="qtyContainer" class="col-span-5">
+            <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Qty / Weight</label>
+            <div class="flex">
+              <input type="number" id="purchaseQty" inputmode="decimal" placeholder="e.g. 1" step="0.01" class="w-full px-2 py-2 border border-r-0 border-slate-300 rounded-l-xl text-sm font-mono outline-none focus:ring-2 focus:ring-purple-600 bg-slate-50/50 focus:bg-white" />
+              <select id="purchaseUnit" class="bg-slate-100 border border-slate-300 rounded-r-xl px-1.5 text-xs font-bold text-slate-700 outline-none">
+                <option value="pcs">Pcs</option>
+                <option value="kg">Kg</option>
+                <option value="l">L</option>
+                <option value="ml">Ml</option>
+                <option value="grams">Grams</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="col-span-2 flex items-end">
+            <button type="button" id="addItemBtn" class="w-full brand-bg text-white font-bold py-2 rounded-xl text-xs hover:opacity-90 transition shadow-sm h-[38px]">Add</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Bill Items List</span>
+        <button type="button" id="clearCartBtn" class="text-xs font-bold text-red-600 hover:text-red-700 flex items-center gap-1 hover:underline">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+          Clear All Items
+        </button>
+      </div>
+
+      <div class="border border-slate-200 rounded-2xl overflow-hidden bg-white min-h-[120px] max-h-[220px] overflow-y-auto shadow-xs">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-100 text-slate-600 font-bold uppercase tracking-wider text-[10px] sticky top-0">
+            <tr>
+              <th class="p-2.5">Item Details</th>
+              <th class="p-2.5 text-right">Cost</th>
+              <th class="p-2.5 text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody id="cartTableBody" class="divide-y divide-slate-100 font-medium">
+            <tr id="emptyCartRow"><td colspan="3" class="p-6 text-center text-slate-400 italic">No items added to bill yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="flex justify-between items-center text-xs font-semibold text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+            <span>GST or MDR (%):</span>
+            <input type="number" id="gstRateInput" inputmode="decimal" min="0" max="100" step="0.1" placeholder="0" class="w-20 px-2 py-1 text-right border border-slate-300 rounded-lg font-mono text-xs outline-none bg-white font-bold">
+          </div>
+
+          <div class="flex justify-between items-center text-xs font-semibold text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+            <span>Discount Amount (₹):</span>
+            <input type="number" id="discountInput" inputmode="decimal" value="" min="0" step="1" placeholder="0" class="w-20 px-2 py-1 text-right border border-slate-300 rounded-lg font-mono text-xs outline-none bg-white font-bold">
+          </div>
+        </div>
+
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 space-y-1.5 shadow-2xs text-xs">
+          <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 border-b border-slate-200 pb-1 mb-1">
+            Bill Amount Summary
+          </div>
+          <div class="flex justify-between text-slate-600 font-medium">
+            <span>Subtotal:</span>
+            <span id="subtotalText" class="font-mono font-bold">₹ 0.00</span>
+          </div>
+          <div class="flex justify-between text-slate-600 font-medium">
+            <span>GST or MDR (<span id="gstPctDisplay">0</span>%):</span>
+            <span id="gstCalculatedText" class="font-mono text-emerald-600 font-bold">+₹ 0.00</span>
+          </div>
+          <div class="flex justify-between text-slate-600 font-medium">
+            <span>Discount Offered:</span>
+            <span id="discountCalculatedText" class="font-mono text-red-500 font-bold">-₹ 0.00</span>
+          </div>
+          <div class="flex justify-between items-center pt-1.5 border-t border-slate-200 font-extrabold text-slate-800 text-sm">
+            <span>Total Bill Amount:</span>
+            <span id="grandTotalText" class="font-mono brand-text text-base">₹0.00</span>
+          </div>
+        </div>
+
+        <div class="flex justify-between items-center text-xs font-semibold text-slate-600 pt-1">
+          <span class="text-amber-700 font-bold">💵 Cash Paid (Split):</span>
+          <input type="number" id="cashSplitInput" inputmode="decimal" value="" min="0" step="1" placeholder="0" class="w-24 px-2 py-1.5 text-right border border-amber-300 rounded-lg font-mono text-xs outline-none bg-amber-50/50 font-bold text-amber-800">
+        </div>
+
+        <div id="changeReturnRow" class="hidden flex justify-between items-center bg-emerald-50 p-2 rounded-xl border border-emerald-200 text-xs font-bold text-emerald-800">
+          <span>🔄 Change To Return:</span>
+          <span id="changeReturnText" class="font-mono text-emerald-900 font-black">₹0.00</span>
+        </div>
+
+        <div class="pt-2 border-t border-slate-200 flex justify-between items-center">
+          <div>
+            <span class="text-xs font-bold text-slate-500 block">Remaining UPI QR Pay:</span>
+            <span id="billResult" class="font-mono text-2xl font-black brand-text">₹ 0.00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-4 bg-white border-t border-slate-200 shrink-0 max-w-4xl mx-auto w-full">
+      <button type="button" id="applyCalcToAmountBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-2xl shadow-lg transition duration-200 flex items-center justify-center gap-2 text-base">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        Complete Sale, Kitchen & Generate QR
+      </button>
+    </div>
+  </div>
+
+  <!-- FULL-SCREEN MODAL: Daily Sales Ledger History -->
+  <div id="ledgerModalOverlay" class="fixed inset-0 bg-slate-900 z-50 hidden flex flex-col h-full w-full overflow-hidden">
+    <div class="brand-gradient p-4 sm:p-5 text-white flex items-center justify-between shrink-0 shadow-lg">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-md">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+        </div>
+        <div>
+          <h3 class="font-extrabold text-base sm:text-lg leading-none">Daily Sales & History</h3>
+          <p class="text-[11px] text-white/70 mt-1"></p>
+        </div>
+      </div>
+      <button type="button" id="closeLedgerModalBtn" class="text-white/80 hover:text-white p-2 rounded-xl bg-white/10 hover:bg-white/20 transition flex items-center gap-1 text-xs font-bold">
+        <span>Close</span>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <div class="grow bg-slate-100 p-3 sm:p-6 overflow-y-auto max-w-4xl mx-auto w-full space-y-4 pb-24 sm:pb-6">
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <span class="text-xs font-bold text-slate-600 uppercase tracking-wider w-full sm:w-auto">Filter Date:</span>
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <select id="ledgerDateFilter" class="px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-purple-600 grow sm:grow-0">
+              <option value="today">Today</option>
+              <option value="yesterday">Yesterday</option>
+              <option value="custom">Custom Date</option>
+              <option value="all">All Time</option>
+            </select>
+            <input type="date" id="customDateInput" class="hidden px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-purple-600 font-mono" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-purple-50 border border-purple-100 p-3.5 rounded-2xl">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-purple-600 block mb-0.5">Filtered Sales</span>
+            <span id="ledgerTotalSales" class="font-mono text-2xl font-black brand-text">₹ 0.00</span>
+          </div>
+          <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-0.5">Transactions</span>
+            <span id="ledgerCount" class="font-mono text-2xl font-black text-slate-800">0</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 bg-slate-50 p-2.5 rounded-2xl border border-slate-200 text-xs font-semibold">
+          <div class="flex justify-between items-center bg-amber-50/70 p-2 rounded-xl border border-amber-200/80">
+            <span class="text-amber-800">💵 Cash Paid:</span>
+            <span id="ledgerCashTotal" class="font-mono font-bold text-amber-900">₹0.00</span>
+          </div>
+          <div class="flex justify-between items-center bg-emerald-50/70 p-2 rounded-xl border border-emerald-200/80">
+            <span class="text-emerald-800">📱 UPI Paid:</span>
+            <span id="ledgerUpiTotal" class="font-mono font-bold text-emerald-900">₹0.00</span>
+          </div>
+        </div>
+
+        <div class="border border-slate-200 rounded-2xl overflow-hidden min-h-[220px] max-h-[45vh] overflow-y-auto bg-white">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-100 text-slate-600 font-bold uppercase tracking-wider text-[10px] sticky top-0">
+              <tr>
+                <th class="p-2.5">Date / Time</th>
+                <th class="p-2.5">Customer & Mobile</th>
+                <th class="p-2.5 text-right">Amount / Delete</th>
+              </tr>
+            </thead>
+            <tbody id="ledgerTableBody" class="divide-y divide-slate-100 font-medium">
+              <tr><td colspan="3" class="p-8 text-center text-slate-400 italic">No transactions recorded today yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-4 bg-white border-t border-slate-200 shrink-0 max-w-4xl mx-auto w-full flex gap-2">
+      <button type="button" id="exportCsvBtn" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-2xl shadow-md transition flex items-center justify-center gap-2 text-xs">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+        Export to Sheets
+      </button>
+      
+      <button type="button" id="clearLedgerBtn" class="relative overflow-hidden bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 px-5 rounded-2xl transition text-xs select-none">
+        <span class="relative z-10">Clear All</span>
+        <div id="clearProgressBar" class="absolute bottom-0 left-0 h-1 bg-red-600 w-0 transition-all duration-75"></div>
+      </button>
+    </div>
+  </div>
+  
+  <!-- FULL-SCREEN MODAL: KDS (Kitchen Display System) -->
+  <div id="kdsModalOverlay" class="fixed inset-0 bg-slate-900 z-50 hidden flex flex-col h-full w-full overflow-hidden">
+    <div class="bg-gradient-to-r from-red-600 to-rose-800 p-4 sm:p-5 text-white flex items-center justify-between shrink-0 shadow-lg">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-md">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+        </div>
+        <div>
+          <h3 class="font-extrabold text-base sm:text-lg leading-none">Kitchen Display System</h3>
+          <p class="text-[11px] text-red-100 mt-1">Live Order Routing</p>
+        </div>
+      </div>
+      <button type="button" id="closeKdsModalBtn" class="text-white/80 hover:text-white p-2 rounded-xl bg-white/10 hover:bg-white/20 transition flex items-center gap-1 text-xs font-bold">
+        <span>Close</span>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <div class="grow bg-slate-100 p-3 sm:p-6 overflow-y-auto w-full space-y-4 pb-24 sm:pb-6">
+      <div id="kdsOrdersContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Order cards will be injected here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP MODAL: Generated QR Preview Standee -->
+  <div id="qrResultModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white w-full max-w-sm sm:max-w-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all flex flex-col items-center p-4 sm:p-6 space-y-3 sm:space-y-4 max-h-[92vh]">
+      <div class="flex justify-between items-center w-full border-b border-slate-100 pb-2.5">
+        <h3 class="font-extrabold text-base sm:text-lg brand-text flex items-center gap-2">
+          <span>✨</span> Generated Standee
+        </h3>
+        <button type="button" id="closeQrModalBtn" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <div id="printableArea" class="bg-white p-2 rounded-2xl shadow-lg border border-slate-200/80 flex items-center justify-center w-full overflow-hidden shrink min-h-0">
+        <canvas id="standeeCanvas" width="800" height="1200" class="w-auto h-auto max-h-[48vh] sm:max-h-[52vh] max-w-full aspect-[800/1200] rounded-xl border border-slate-100 shadow-sm object-contain"></canvas>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2.5 w-full shrink-0">
+        <button id="downloadBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-3 px-3 rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-1.5 active:scale-[0.99]">
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+          Download PNG
+        </button>
+        <button id="printBtn" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold py-3 px-3 rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-1.5 active:scale-[0.99]">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+          Print Standee
+        </button>
+      </div>
+
+      <button id="whatsappInvoiceBtn" class="w-full bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-3 px-3 rounded-xl shadow transition flex items-center justify-center gap-1.5 shrink-0">
+        <span>🧾</span> Invoice via WhatsApp
+      </button>
+    </div>
+  </div>
+
+  <!-- HEADER WITH 3-LINE MENU BAR -->
+  <header class="w-full max-w-2xl brand-gradient text-white pt-4 pb-6 px-4 rounded-b-3xl shadow-xl relative overflow-hidden">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <button type="button" id="openDrawerBtn" class="w-10 h-10 bg-white rounded-2xl flex items-center justify-center brand-text shadow-md transition-transform transform active:scale-90 focus:outline-none" aria-label="Open Menu">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </button>
+
+        <div>
+          <h1 id="mainAppTitle" class="text-lg font-black tracking-tight leading-none">Solid Money App</h1>
+          <p class="text-white/80 text-[11px] font-medium mt-0.5">Pro Merchant Suite</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div class="flex items-center justify-center gap-1 bg-black/20 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/15">
+          <div class="flex items-center gap-1">
+            <button type="button" data-theme="theme-purple" class="w-4 h-4 rounded-full bg-[#5f259f] border border-white transition transform hover:scale-110" title="PhonePe Purple"></button>
+            <button type="button" data-theme="theme-blue" class="w-4 h-4 rounded-full bg-[#002e6e] border border-white transition transform hover:scale-110" title="Paytm Blue"></button>
+            <button type="button" data-theme="theme-teal" class="w-4 h-4 rounded-full bg-[#00796b] border border-white transition transform hover:scale-110" title="GPay Teal"></button>
+            <button type="button" data-theme="theme-emerald" class="w-4 h-4 rounded-full bg-[#047857] border border-white transition transform hover:scale-110" title="Emerald Green"></button>
+            <button type="button" data-theme="theme-dark" class="w-4 h-4 rounded-full bg-[#0f172a] border border-white transition transform hover:scale-110" title="Dark Obsidian"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN INTERFACE: REORDERABLE BUTTON SECTIONS -->
+  <main class="max-w-2xl w-full bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-200/80 -mt-3 mb-auto p-5 sm:p-8 space-y-6">
+    
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="text-base font-black text-slate-800 tracking-tight">Merchant Control Hub</h2>
+        <p class="text-xs text-slate-500 font-medium">Hold and drag any button to change its position.</p>
+      </div>
+      <button type="button" id="alertsBtn" class="hidden text-[10px] font-bold text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-full border border-red-200 transition shadow-2xs flex items-center gap-1.5 cursor-pointer">
+        <span>⚠️</span> <span>Alerts (&lt; 10)</span>
+      </button>
+    </div>
+
+    <!-- 7 VERTICAL COLOR-CODED REORDERABLE ACTION BUTTONS -->
+    <div id="buttonContainer" class="flex flex-col space-y-3.5">
+      
+      <!-- 1. UPI Section -->
+      <button type="button" id="gridUpiBtn" draggable="true" class="reorder-btn group flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg shadow-purple-500/20 hover:scale-[1.01] active:scale-[0.99] transition duration-200 text-left relative overflow-hidden w-full cursor-grab active:cursor-grabbing">
+        <div class="flex items-center">
+          <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center mr-4 shrink-0">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-extrabold text-sm leading-tight">UPI Section</span>
+            <span class="text-[10px] text-purple-100 mt-0.5 font-medium">Universal QR, VPA & Configuration</span>
+          </div>
+        </div>
+        <div class="text-white/60 text-xs font-mono px-2">⠿ Hold & Drag</div>
+      </button>
+
+      <!-- 2. Stock Section -->
+      <button type="button" id="gridStockBtn" draggable="true" onclick="document.getElementById('openMasterInventoryModalBtn').click()" class="reorder-btn group flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/20 hover:scale-[1.01] active:scale-[0.99] transition duration-200 text-left relative overflow-hidden w-full cursor-grab active:cursor-grabbing">
+        <div class="flex items-center">
+          <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center mr-4 shrink-0">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-extrabold text-sm leading-tight">Stock Section</span>
+            <span class="text-[10px] text-emerald-100 mt-0.5 font-medium">Inventory & Rack Config</span>
+          </div>
+        </div>
+        <div class="text-white/60 text-xs font-mono px-2">⠿ Hold & Drag</div>
+      </button>
+
+      <!-- 3. Search Section -->
+      <button type="button" id="gridSearchBtn" draggable="true" onclick="document.getElementById('openSearchModalBtn').click()" class="reorder-btn group flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-blue-500 to-cyan-600 text-white shadow-lg shadow-blue-500/20 hover:scale-[1.01] active:scale-[0.99] transition duration-200 text-left relative overflow-hidden w-full cursor-grab active:cursor-grabbing">
+        <div class="flex items-center">
+          <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center mr-4 shrink-0">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-extrabold text-sm leading-tight">Search Section</span>
+            <span class="text-[10px] text-blue-100 mt-0.5 font-medium">Lookup Sales & Customers</span>
+          </div>
+        </div>
+        <div class="text-white/60 text-xs font-mono px-2">⠿ Hold & Drag</div>
+      </button>
+
+      <!-- 4. History Section -->
+      <button type="button" id="gridHistoryBtn" draggable="true" onclick="document.getElementById('openLedgerModalBtn').click()" class="reorder-btn group flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/20 hover:scale-[1.01] active:scale-[0.99] transition duration-200 text-left relative overflow-hidden w-full cursor-grab active:cursor-grabbing">
+        <div class="flex items-center">
+          <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center mr-4 shrink-0">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-extrabold text-sm leading-tight">History Section</span>
+            <span class="text-[10px] text-amber-100 mt-0.5 font-medium">Daily Sales & Ledger Logs</span>
+          </div>
+        </div>
+        <div class="text-white/60 text-xs font-mono px-2">⠿ Hold & Drag</div>
+      </button>
+
+      <!-- 5. POS Checkout -->
+      <button type="button" id="gridPosBtn" draggable="true" class="reorder-btn group flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-500/20 hover:scale-[1.01] active:scale-[0.99] transition duration-200 text-left relative overflow-hidden w-full cursor-grab active:cursor-grabbing">
+        <div class="flex items-center">
+          <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center mr-4 shrink-0">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-extrabold text-sm leading-tight">POS Checkout</span>
+            <span class="text-[10px] text-rose-100 mt-0.5 font-medium">Weight & Multi-Item Bill</span>
+          </div>
+        </div>
+        <div class="text-white/60 text-xs font-mono px-2">⠿ Hold & Drag</div>
+      </button>
+
+      <!-- 6. Kitchen Display System -->
+      <button type="button" id="gridKdsBtn" draggable="true" class="reorder-btn group flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-red-600 to-rose-800 text-white shadow-lg shadow-red-500/20 hover:scale-[1.01] active:scale-[0.99] transition duration-200 text-left relative overflow-hidden w-full cursor-grab active:cursor-grabbing">
+        <div class="flex items-center">
+          <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center mr-4 shrink-0">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-extrabold text-sm leading-tight">Kitchen System (KDS)</span>
+            <span class="text-[10px] text-red-100 mt-0.5 font-medium">Live Order Prep Routing</span>
+          </div>
+        </div>
+        <div class="text-white/60 text-xs font-mono px-2">⠿ Hold & Drag</div>
+      </button>
+
+      <!-- 7. Standee Hub (Hidden) -->
+      <button type="button" id="gridStandeeBtn" draggable="true" class="hidden reorder-btn group items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-slate-700 to-slate-900 text-white shadow-lg shadow-slate-900/20 hover:scale-[1.01] active:scale-[0.99] transition duration-200 text-left relative overflow-hidden w-full cursor-grab active:cursor-grabbing">
+        <div class="flex items-center">
+          <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center mr-4 shrink-0">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-extrabold text-sm leading-tight">Standee Hub</span>
+            <span class="text-[10px] text-slate-300 mt-0.5 font-medium">Generate, Print & Download</span>
+          </div>
+        </div>
+        <div class="text-white/60 text-xs font-mono px-2">⠿ Hold & Drag</div>
+      </button>
+
+    </div>
+
+  </main>
+
+  <footer class="text-center my-4 text-xs font-semibold text-slate-400">
+    &copy; All rights reserved by SMGC PVT LTD
+  </footer>
+
+  <!-- Firebase SDK Modules -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, addDoc, onSnapshot, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBvntl7gJYnz63oNdY6MFqV7JJSAaGMDMA",
+      authDomain: "solidmoneyapp.firebaseapp.com",
+      projectId: "solidmoneyapp",
+      storageBucket: "solidmoneyapp.firebasestorage.app",
+      messagingSenderId: "230087802254",
+      appId: "1:230087802254:web:89c69e10df4a0547f878df",
+      measurementId: "G-6KD8MP807V"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    window.firebaseAuth = auth;
+    window.firebaseDb = db;
+    window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+    window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+    window.signOut = signOut;
+    window.doc = doc;
+    window.setDoc = setDoc;
+    window.getDoc = getDoc;
+    window.collection = collection;
+    window.addDoc = addDoc;
+    window.onSnapshot = onSnapshot;
+    window.updateDoc = updateDoc;
+    window.query = query;
+    window.where = where;
+    window.onAuthStateChanged = onAuthStateChanged;
+  </script>
+
+  <script>
+    function triggerIosPulse(element) {
+      if (!element) return;
+      element.classList.remove('ios-lookup-active');
+      void element.offsetWidth;
+      element.classList.add('ios-lookup-active');
+    }
+
+    const openDrawerBtn = document.getElementById('openDrawerBtn');
+    const smDrawerLogo = document.getElementById('smDrawerLogo');
+
+    openDrawerBtn.addEventListener('click', () => {
+      triggerIosPulse(openDrawerBtn);
+      openDrawer();
+    });
+
+    let smLogoPressTimer = null;
+
+    function handleLogoLongPress() {
+      closeDrawer();
+      localStorage.removeItem('appUnlocked');
+      pinAuthModal.classList.remove('hidden');
+      pinInput.value = '';
+      pinErrorMsg.classList.add('hidden');
+      setTimeout(() => pinInput.focus(), 100);
+    }
+
+    function startLogoPress(e) {
+      e.preventDefault();
+      clearTimeout(smLogoPressTimer);
+      smLogoPressTimer = setTimeout(handleLogoLongPress, 5000);
+    }
+
+    function cancelLogoPress() {
+      clearTimeout(smLogoPressTimer);
+    }
+
+    if (smDrawerLogo) {
+      smDrawerLogo.addEventListener('mousedown', startLogoPress);
+      smDrawerLogo.addEventListener('mouseup', cancelLogoPress);
+      smDrawerLogo.addEventListener('mouseleave', cancelLogoPress);
+      smDrawerLogo.addEventListener('touchstart', startLogoPress);
+      smDrawerLogo.addEventListener('touchend', cancelLogoPress);
+      smDrawerLogo.addEventListener('touchcancel', cancelLogoPress);
+    }
+
+    const pinAuthModal = document.getElementById('pinAuthModal');
+    const pinInput = document.getElementById('pinInput');
+    const submitPinBtn = document.getElementById('submitPinBtn');
+    const pinErrorMsg = document.getElementById('pinErrorMsg');
+
+    function getTodayPin() {
+      const today = new Date();
+      const minute = String(today.getMinutes()).padStart(2, '0');
+      const hour = String(today.getHours()).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      return `${minute}${hour}${day}`;
+    }
+
+    function checkAuth() {
+      if (localStorage.getItem('appUnlocked') === 'true') {
+        pinAuthModal.classList.add('hidden');
+      } else {
+        pinAuthModal.classList.remove('hidden');
+      }
+    }
+
+    function validatePin() {
+      const expectedPin = getTodayPin();
+      if (pinInput.value.trim() === expectedPin) {
+        localStorage.setItem('appUnlocked', 'true');
+        pinAuthModal.classList.add('hidden');
+        pinErrorMsg.classList.add('hidden');
+        pinInput.value = '';
+      } else {
+        pinErrorMsg.classList.remove('hidden');
+      }
+    }
+
+    submitPinBtn.addEventListener('click', validatePin);
+    pinInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') validatePin();
+    });
+
+    checkAuth();
+
+    function toggleModal(modalElem, show) {
+      if (show) {
+        document.body.classList.add('overflow-hidden');
+        modalElem.classList.remove('hidden');
+      } else {
+        document.body.classList.remove('overflow-hidden');
+        modalElem.classList.add('hidden');
+      }
+    }
+
+    const alertsBtn = document.getElementById('alertsBtn');
+    const alertsModalOverlay = document.getElementById('alertsModalOverlay');
+    const closeAlertsModalBtn = document.getElementById('closeAlertsModalBtn');
+    const lowStockList = document.getElementById('lowStockList');
+
+    function checkLowStockAlerts() {
+      const lowStockItems = inventoryMaster.filter(item => (item.stock || 0) < 10);
+      if (lowStockItems.length > 0) {
+        alertsBtn.classList.remove('hidden');
+      } else {
+        alertsBtn.classList.add('hidden');
+      }
+    }
+
+    alertsBtn.addEventListener('click', () => {
+      const lowStockItems = inventoryMaster.filter(item => (item.stock || 0) < 10);
+      lowStockList.innerHTML = lowStockItems.map(item => `
+        <div class="p-3 flex items-center justify-between text-xs font-semibold">
+          <div>
+            <span class="text-slate-800">[${item.rackSrNo || 'R-001'}] ${item.name}</span>
+          </div>
+          <span class="font-mono font-bold text-red-600 bg-red-50 px-2.5 py-1 rounded-lg border border-red-200">
+            ${item.stock || 0} ${item.unit || 'pcs'} left
+          </span>
+        </div>
+      `).join('');
+      toggleModal(alertsModalOverlay, true);
+    });
+
+    closeAlertsModalBtn.addEventListener('click', () => toggleModal(alertsModalOverlay, false));
+
+    const authModalOverlay = document.getElementById('authModalOverlay');
+    const openAuthModalBtn = document.getElementById('openAuthModalBtn');
+    const closeAuthModalBtn = document.getElementById('closeAuthModalBtn');
+    const userEmailInput = document.getElementById('userEmailInput');
+    const userPasswordInput = document.getElementById('userPasswordInput');
+    const firebaseLoginBtn = document.getElementById('firebaseLoginBtn');
+    const firebaseSignupBtn = document.getElementById('firebaseSignupBtn');
+    const firebaseErrorMsg = document.getElementById('firebaseErrorMsg');
+    
+    const accountEmailLabel = document.getElementById('accountEmailLabel');
+    const accountSyncBadge = document.getElementById('accountSyncBadge');
+    const userAvatar = document.getElementById('userAvatar');
+
+    let currentUserUid = null;
+    
+    // KDS Live sync variables
+    let unsubscribeKDS = null;
+    let localLiveOrders = JSON.parse(localStorage.getItem('localLiveOrders') || '[]');
+
+    window.addEventListener('load', () => {
+      loadButtonOrder();
+      setupReorder();
+      const checkInterval = setInterval(() => {
+        if (window.firebaseAuth) {
+          clearInterval(checkInterval);
+          window.onAuthStateChanged(window.firebaseAuth, async (user) => {
+            if (user) {
+              currentUserUid = user.uid;
+              accountEmailLabel.textContent = user.email;
+              accountSyncBadge.textContent = "☁️ Cloud Synced";
+              accountSyncBadge.className = "text-[10px] text-emerald-600 font-bold";
+              openAuthModalBtn.textContent = "Sign Out";
+              userAvatar.textContent = user.email.charAt(0).toUpperCase();
+
+              await loadCloudData(user.uid);
+              setupKDSListener(user.uid);
+            } else {
+              currentUserUid = null;
+              accountEmailLabel.textContent = "Not Signed In";
+              accountSyncBadge.textContent = "Local Storage Active";
+              accountSyncBadge.className = "text-[10px] text-slate-500 font-medium";
+              openAuthModalBtn.textContent = "Sign In";
+              userAvatar.textContent = "👤";
+              inventoryMaster = loadDefaultInventory();
+              salesLedger = JSON.parse(localStorage.getItem('salesLedgerLogs') || '[]');
+              renderMasterInventory();
+              renderLedgerModal();
+              
+              if(unsubscribeKDS) unsubscribeKDS();
+              unsubscribeKDS = null;
+              renderKDS(localLiveOrders);
+            }
+          });
+        }
+      }, 100);
+    });
+
+    // --- BUTTON REORDERING LOGIC ---
+    let draggedItem = null;
+
+    function setupReorder() {
+      const container = document.getElementById('buttonContainer');
+      if (!container) return;
+
+      const buttons = container.querySelectorAll('.reorder-btn');
+      buttons.forEach(btn => {
+        let isDragging = false;
+
+        btn.addEventListener('dragstart', (e) => {
+          isDragging = true;
+          draggedItem = btn;
+          setTimeout(() => btn.classList.add('opacity-40'), 0);
+        });
+
+        btn.addEventListener('dragend', (e) => {
+          isDragging = false;
+          btn.classList.remove('opacity-40');
+          draggedItem = null;
+          saveButtonOrder();
+        });
+
+        btn.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          const afterElement = getDragAfterElement(container, e.clientY);
+          const currentElement = draggedItem;
+          if (afterElement == null) {
+            container.appendChild(currentElement);
+          } else {
+            container.insertBefore(currentElement, afterElement);
+          }
+        });
+
+        btn.addEventListener('click', (e) => {
+          if (isDragging) return;
+          const id = btn.id;
+          if (id === 'gridUpiBtn') toggleModal(upiConfigModalOverlay, true);
+          else if (id === 'gridStandeeBtn') {
+            setMode('standee');
+            toggleModal(upiConfigModalOverlay, true);
+          } else if (id === 'gridPosBtn') openCalcModal();
+          else if (id === 'gridKdsBtn') toggleModal(document.getElementById('kdsModalOverlay'), true);
+        });
+
+        btn.addEventListener('touchstart', (e) => {
+          draggedItem = btn;
+        }, {passive: true});
+
+        btn.addEventListener('touchmove', (e) => {
+          e.preventDefault();
+          const touch = e.touches[0];
+          const target = document.elementFromPoint(touch.clientX, touch.clientY);
+          if (target && target.closest('.reorder-btn') && target.closest('.reorder-btn') !== draggedItem) {
+            const targetBtn = target.closest('.reorder-btn');
+            const allBtns = [...container.querySelectorAll('.reorder-btn')];
+            const srcIndex = allBtns.indexOf(draggedItem);
+            const targetIndex = allBtns.indexOf(targetBtn);
+            if (srcIndex < targetIndex) {
+              container.insertBefore(draggedItem, targetBtn.nextSibling);
+            } else {
+              container.insertBefore(draggedItem, targetBtn);
+            }
+          }
+        }, {passive: false});
+
+        btn.addEventListener('touchend', () => {
+          draggedItem = null;
+          saveButtonOrder();
+        });
+      });
+    }
+
+    function getDragAfterElement(container, y) {
+      const draggableElements = [...container.querySelectorAll('.reorder-btn:not(.opacity-40)')];
+      return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+          return { offset: offset, element: child };
+        } else {
+          return closest;
+        }
+      }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    function saveButtonOrder() {
+      const container = document.getElementById('buttonContainer');
+      const order = [...container.querySelectorAll('.reorder-btn')].map(b => b.id);
+      localStorage.setItem('buttonOrder', JSON.stringify(order));
+    }
+
+    function loadButtonOrder() {
+      const saved = localStorage.getItem('buttonOrder');
+      const container = document.getElementById('buttonContainer');
+      if (saved) {
+        try {
+          const order = JSON.parse(saved);
+          order.forEach(id => {
+            const elem = document.getElementById(id);
+            if (elem) container.appendChild(elem);
+          });
+        } catch(e) {}
+      }
+      // Ensure any new buttons not inside localStorage yet are appended at the end
+      [...container.querySelectorAll('.reorder-btn')].forEach(btn => container.appendChild(btn));
+    }
+
+    openAuthModalBtn.addEventListener('click', async () => {
+      closeDrawer();
+      if (currentUserUid) {
+        await window.signOut(window.firebaseAuth);
+        toggleModal(authModalOverlay, false);
+      } else {
+        toggleModal(authModalOverlay, true);
+      }
+    });
+
+    closeAuthModalBtn.addEventListener('click', () => toggleModal(authModalOverlay, false));
+
+    firebaseLoginBtn.addEventListener('click', async () => {
+      firebaseErrorMsg.classList.add('hidden');
+      try {
+        await window.signInWithEmailAndPassword(window.firebaseAuth, userEmailInput.value.trim(), userPasswordInput.value);
+        toggleModal(authModalOverlay, false);
+        userEmailInput.value = '';
+        userPasswordInput.value = '';
+      } catch (err) {
+        firebaseErrorMsg.textContent = err.message;
+        firebaseErrorMsg.classList.remove('hidden');
+      }
+    });
+
+    firebaseSignupBtn.addEventListener('click', async () => {
+      firebaseErrorMsg.classList.add('hidden');
+      try {
+        await window.createUserWithEmailAndPassword(window.firebaseAuth, userEmailInput.value.trim(), userPasswordInput.value);
+        toggleModal(authModalOverlay, false);
+        userEmailInput.value = '';
+        userPasswordInput.value = '';
+      } catch (err) {
+        firebaseErrorMsg.textContent = err.message;
+        firebaseErrorMsg.classList.remove('hidden');
+      }
+    });
+
+    async function saveInventoryToCloud() {
+      if (!currentUserUid || !window.firebaseDb) return;
+      try {
+        const docRef = window.doc(window.firebaseDb, "inventories", currentUserUid);
+        await window.setDoc(docRef, { items: inventoryMaster, updatedAt: new Date().toISOString() });
+      } catch (err) {
+        console.error("Error saving inventory to Firestore:", err);
+      }
+    }
+
+    async function saveLedgerToCloud() {
+      if (!currentUserUid || !window.firebaseDb) return;
+      try {
+        const docRef = window.doc(window.firebaseDb, "ledgers", currentUserUid);
+        await window.setDoc(docRef, { logs: salesLedger, updatedAt: new Date().toISOString() });
+      } catch (err) {
+        console.error("Error saving ledger to Firestore:", err);
+      }
+    }
+
+    async function loadCloudData(uid) {
+      if (!window.firebaseDb) return;
+      try {
+        const invRef = window.doc(window.firebaseDb, "inventories", uid);
+        const invSnap = await window.getDoc(invRef);
+        if (invSnap.exists() && invSnap.data().items) {
+          inventoryMaster = invSnap.data().items;
+        } else {
+          inventoryMaster = loadDefaultInventory();
+          await saveInventoryToCloud();
+        }
+        renderMasterInventory();
+
+        const ledgerRef = window.doc(window.firebaseDb, "ledgers", uid);
+        const ledgerSnap = await window.getDoc(ledgerRef);
+        if (ledgerSnap.exists() && ledgerSnap.data().logs) {
+          salesLedger = ledgerSnap.data().logs;
+          localStorage.setItem('salesLedgerLogs', JSON.stringify(salesLedger));
+        } else {
+          salesLedger = JSON.parse(localStorage.getItem('salesLedgerLogs') || '[]');
+          await saveLedgerToCloud();
+        }
+        renderLedgerModal();
+      } catch (err) {
+        console.error("Error loading cloud data:", err);
+      }
+    }
+
+    function loadDefaultInventory() {
+      const defaultItems = [
+        { rackSrNo: 'R-101', name: 'Paracetamol 500mg', rate: 20, stock: 150, unit: 'pcs' },
+        { rackSrNo: 'R-102', name: 'Apples', rate: 180, stock: 50, unit: 'kg' },
+        { rackSrNo: 'R-103', name: 'Rice', rate: 60, stock: 200, unit: 'kg' },
+        { rackSrNo: 'R-104', name: 'Sugar', rate: 45, stock: 100, unit: 'kg' }
+      ];
+      return JSON.parse(localStorage.getItem('inventoryMasterList') || JSON.stringify(defaultItems));
+    }
+
+    function saveInventoryToStorage() {
+      localStorage.setItem('inventoryMasterList', JSON.stringify(inventoryMaster));
+      checkLowStockAlerts();
+      if (currentUserUid) {
+        saveInventoryToCloud();
+      }
+    }
+
+    let currentMode = 'standee';
+    let cartItems = [];
+    let salesLedger = JSON.parse(localStorage.getItem('salesLedgerLogs') || '[]');
+    let deletedBackup = JSON.parse(localStorage.getItem('salesLedgerDeletedBackup') || '[]');
+    let inventoryMaster = loadDefaultInventory();
+
+    const themeMap = {
+      'theme-purple': { primary: '#5f259f', dark: '#391163', pill: '#eb7c28' },
+      'theme-blue': { primary: '#002e6e', dark: '#00193d', pill: '#00baf2' },
+      'theme-teal': { primary: '#00796b', dark: '#004d40', pill: '#00bfa5' },
+      'theme-emerald': { primary: '#047857', dark: '#064e3b', pill: '#10b981' },
+      'theme-dark': { primary: '#0f172a', dark: '#020617', pill: '#6366f1' }
+    };
+    let activeThemeKey = 'theme-purple';
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeCalcModal();
+        toggleModal(upiConfigModalOverlay, false);
+        toggleModal(masterInventoryModalOverlay, false);
+        toggleModal(addStockModalOverlay, false);
+        toggleModal(ledgerModalOverlay, false);
+        toggleModal(searchModalOverlay, false);
+        toggleModal(authModalOverlay, false);
+        toggleModal(alertsModalOverlay, false);
+        toggleModal(document.getElementById('kdsModalOverlay'), false);
+        closeQrModal();
+        closeDrawer();
+      }
+    });
+
+    const merchantNameInput = document.getElementById('merchantName');
+    const upiInput = document.getElementById('upiInput');
+    const upiFieldLabel = document.getElementById('upiFieldLabel');
+    const amountInput = document.getElementById('amount');
+    const vpaPreview = document.getElementById('vpaPreview');
+
+    const fixNameToggle = document.getElementById('fixNameToggle');
+    const fixUpiToggle = document.getElementById('fixUpiToggle');
+    const nameFixLabel = document.getElementById('nameFixLabel');
+    const upiFixLabel = document.getElementById('upiFixLabel');
+    
+    const upiConfigModalOverlay = document.getElementById('upiConfigModalOverlay');
+    const closeUpiConfigModalBtn = document.getElementById('closeUpiConfigModalBtn');
+
+    closeUpiConfigModalBtn.addEventListener('click', () => {
+      toggleModal(upiConfigModalOverlay, false);
+    });
+
+    const openMasterInventoryModalBtn = document.getElementById('openMasterInventoryModalBtn');
+    const closeMasterInventoryModalBtn = document.getElementById('closeMasterInventoryModalBtn');
+    const masterInventoryModalOverlay = document.getElementById('masterInventoryModalOverlay');
+    
+    const openAddStockModalBtn = document.getElementById('openAddStockModalBtn');
+    const closeAddStockModalBtn = document.getElementById('closeAddStockModalBtn');
+    const addStockModalOverlay = document.getElementById('addStockModalOverlay');
+
+    const masterRackSrNo = document.getElementById('masterRackSrNo');
+    const masterItemName = document.getElementById('masterItemName');
+    const masterItemRate = document.getElementById('masterItemRate');
+    const masterItemStock = document.getElementById('masterItemStock');
+    const masterItemUnit = document.getElementById('masterItemUnit');
+    const saveMasterItemBtn = document.getElementById('saveMasterItemBtn');
+    const masterInventoryTableBody = document.getElementById('masterInventoryTableBody');
+    const masterInventoryMobileList = document.getElementById('masterInventoryMobileList');
+    const stockSearchInput = document.getElementById('stockSearchInput');
+
+    openAddStockModalBtn.addEventListener('click', () => {
+      masterRackSrNo.value = '';
+      masterItemName.value = '';
+      masterItemRate.value = '';
+      masterItemStock.value = '';
+      masterItemUnit.value = 'pcs';
+      toggleModal(addStockModalOverlay, true);
+      setTimeout(() => masterRackSrNo.focus(), 100);
+    });
+
+    closeAddStockModalBtn.addEventListener('click', () => {
+      toggleModal(addStockModalOverlay, false);
+    });
+
+    const searchModalOverlay = document.getElementById('searchModalOverlay');
+    const openSearchModalBtn = document.getElementById('openSearchModalBtn');
+    const closeSearchModalBtn = document.getElementById('closeSearchModalBtn');
+    const liveSearchInput = document.getElementById('liveSearchInput');
+    const searchTableBody = document.getElementById('searchTableBody');
+
+    window.openSearchModal = function() {
+      liveSearchInput.value = '';
+      renderSearchResults('');
+      toggleModal(searchModalOverlay, true);
+      setTimeout(() => liveSearchInput.focus(), 100);
+    };
+
+    closeSearchModalBtn.addEventListener('click', () => {
+      toggleModal(searchModalOverlay, false);
+    });
+
+    liveSearchInput.addEventListener('input', (e) => {
+      renderSearchResults(e.target.value.trim().toLowerCase());
+    });
+
+    function renderSearchResults(query) {
+      const filtered = salesLedger.filter(item => {
+        const cust = (item.customer || '').toLowerCase();
+        const phone = (item.phone || '').toLowerCase();
+        const amt = (item.amount || '').toString();
+        const date = (item.isoDate || '').toLowerCase();
+        const time = (item.time || '').toLowerCase();
+        return cust.includes(query) || phone.includes(query) || amt.includes(query) || date.includes(query) || time.includes(query);
+      });
+
+      if (filtered.length === 0) {
+        searchTableBody.innerHTML = `<tr><td colspan="3" class="p-8 text-center text-slate-400 italic">No matching transactions found.</td></tr>`;
+      } else {
+        searchTableBody.innerHTML = filtered.map(item => {
+          const originalIdx = salesLedger.indexOf(item);
+          return `
+            <tr class="transaction-row cursor-pointer select-none transition hover:bg-slate-50 relative" data-index="${originalIdx}">
+              <td class="p-2.5 font-mono text-slate-500">${item.isoDate || 'Today'} • ${item.time}</td>
+              <td class="p-2.5 font-bold text-slate-800">
+                ${item.customer}
+                ${item.phone ? `<span class="block text-[11px] font-mono text-slate-500 font-normal">+91 ${item.phone}</span>` : ''}
+              </td>
+              <td class="p-2.5 text-right font-mono font-extrabold brand-text">
+                <span class="amount-text">₹${item.amount.toFixed(2)}</span>
+                <button onclick="deleteLedgerItem(${originalIdx})" class="delete-btn hidden ml-2 px-2 py-1 bg-red-500 text-white rounded-lg text-xs font-bold shadow hover:bg-red-600">×</button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+        attachLongPressEvents();
+      }
+    }
+
+    const closeCalcModalBtn = document.getElementById('closeCalcModalBtn');
+    const calcModalOverlay = document.getElementById('calcModalOverlay');
+
+    const custName = document.getElementById('custName');
+    const custPhone = document.getElementById('custPhone');
+    const itemNameInput = document.getElementById('itemNameInput');
+    const suggestionsBox = document.getElementById('suggestionsBox');
+    
+    const flatPriceToggle = document.getElementById('flatPriceToggle');
+    const rateContainer = document.getElementById('rateContainer');
+    const flatPriceContainer = document.getElementById('flatPriceContainer');
+    const flatPriceInput = document.getElementById('flatPriceInput');
+    const qtyContainer = document.getElementById('qtyContainer');
+    
+    const ratePerKg = document.getElementById('ratePerKg');
+    const purchaseQty = document.getElementById('purchaseQty');
+    const purchaseUnit = document.getElementById('purchaseUnit');
+    const addItemBtn = document.getElementById('addItemBtn');
+    const clearCartBtn = document.getElementById('clearCartBtn');
+    const cartTableBody = document.getElementById('cartTableBody');
+    
+    const subtotalText = document.getElementById('subtotalText');
+    const gstRateInput = document.getElementById('gstRateInput');
+    const gstPctDisplay = document.getElementById('gstPctDisplay');
+    const gstCalculatedText = document.getElementById('gstCalculatedText');
+    const discountInput = document.getElementById('discountInput');
+    const discountCalculatedText = document.getElementById('discountCalculatedText');
+    const cashSplitInput = document.getElementById('cashSplitInput');
+    const changeReturnRow = document.getElementById('changeReturnRow');
+    const changeReturnText = document.getElementById('changeReturnText');
+    const billResult = document.getElementById('billResult');
+    const grandTotalText = document.getElementById('grandTotalText');
+    const applyCalcToAmountBtn = document.getElementById('applyCalcToAmountBtn');
+
+    const openLedgerModalBtn = document.getElementById('openLedgerModalBtn');
+    const closeLedgerModalBtn = document.getElementById('closeLedgerModalBtn');
+    const ledgerModalOverlay = document.getElementById('ledgerModalOverlay');
+    const ledgerDateFilter = document.getElementById('ledgerDateFilter');
+    const customDateInput = document.getElementById('customDateInput');
+    const ledgerTotalSales = document.getElementById('ledgerTotalSales');
+    const ledgerCount = document.getElementById('ledgerCount');
+    const ledgerCashTotal = document.getElementById('ledgerCashTotal');
+    const ledgerUpiTotal = document.getElementById('ledgerUpiTotal');
+    const ledgerTableBody = document.getElementById('ledgerTableBody');
+    const exportCsvBtn = document.getElementById('exportCsvBtn');
+    const clearLedgerBtn = document.getElementById('clearLedgerBtn');
+    const clearProgressBar = document.getElementById('clearProgressBar');
+
+    const qrResultModal = document.getElementById('qrResultModal');
+    const closeQrModalBtn = document.getElementById('closeQrModalBtn');
+    const whatsappInvoiceBtn = document.getElementById('whatsappInvoiceBtn');
+
+    // KDS elements
+    const closeKdsModalBtn = document.getElementById('closeKdsModalBtn');
+    closeKdsModalBtn.addEventListener('click', () => { toggleModal(document.getElementById('kdsModalOverlay'), false); });
+
+    const renderBtn = document.getElementById('renderBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const printBtn = document.getElementById('printBtn');
+    const rawQrWrapper = document.getElementById('rawQrWrapper');
+    const canvas = document.getElementById('standeeCanvas');
+    const ctx = canvas.getContext('2d');
+
+    flatPriceToggle.addEventListener('change', () => {
+      if (flatPriceToggle.checked) {
+        rateContainer.classList.add('hidden');
+        qtyContainer.classList.add('hidden');
+        flatPriceContainer.classList.remove('hidden');
+      } else {
+        rateContainer.classList.remove('hidden');
+        qtyContainer.classList.remove('hidden');
+        flatPriceContainer.classList.add('hidden');
+      }
+    });
+
+    stockSearchInput.addEventListener('input', () => {
+      renderMasterInventory();
+    });
+
+    function renderMasterInventory() {
+      const searchTerm = (stockSearchInput.value || '').toLowerCase().trim();
+      const filteredItems = inventoryMaster.filter(item => 
+        item.name.toLowerCase().includes(searchTerm) || 
+        (item.rackSrNo || '').toLowerCase().includes(searchTerm)
+      );
+
+      if (filteredItems.length === 0) {
+        masterInventoryTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400 italic">No matching stock items found.</td></tr>`;
+        masterInventoryMobileList.innerHTML = `<div class="p-6 text-center text-slate-400 italic text-xs">No matching stock items found.</div>`;
+      } else {
+        masterInventoryTableBody.innerHTML = filteredItems.map((item) => {
+          const originalIdx = inventoryMaster.indexOf(item);
+          return `
+            <tr>
+              <td class="p-2.5 font-mono font-bold text-purple-700">
+                <input type="text" id="editRack_${originalIdx}" value="${item.rackSrNo || 'R-001'}" class="w-24 px-2 py-1 border border-slate-200 rounded-lg text-xs font-mono font-bold bg-slate-50 focus:bg-white focus:ring-2 focus:ring-purple-600 outline-none" />
+              </td>
+              <td class="p-2.5 font-bold text-slate-800">
+                <input type="text" id="editName_${originalIdx}" value="${item.name}" class="w-full px-2 py-1 border border-slate-200 rounded-lg text-xs font-semibold bg-slate-50 focus:bg-white focus:ring-2 focus:ring-purple-600 outline-none" />
+              </td>
+              <td class="p-2.5 text-right font-mono font-bold">
+                <input type="number" id="editRate_${originalIdx}" value="${item.rate || 0}" step="0.01" inputmode="decimal" class="w-20 px-2 py-1 text-right border border-slate-200 rounded-lg text-xs font-mono font-bold bg-slate-50 focus:bg-white focus:ring-2 focus:ring-purple-600 outline-none text-emerald-600" />
+              </td>
+              <td class="p-2.5 text-center font-mono font-bold">
+                <div class="flex items-center justify-center gap-1">
+                  <input type="number" id="editStock_${originalIdx}" value="${item.stock || 0}" step="0.01" inputmode="decimal" class="w-16 px-2 py-1 text-center border border-slate-200 rounded-lg text-xs font-mono font-bold bg-slate-50 focus:bg-white focus:ring-2 focus:ring-purple-600 outline-none ${(item.stock || 0) < 10 ? 'text-red-500' : 'text-slate-800'}" />
+                  <span class="text-[10px] text-slate-500 font-normal uppercase">${item.unit || 'pcs'}</span>
+                </div>
+              </td>
+              <td class="p-2.5 text-center space-x-1">
+                <button onclick="saveStockEdit(${originalIdx})" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-lg text-[11px] shadow-2xs transition">Save</button>
+                <button onclick="deleteMasterItem(${originalIdx})" class="px-2 py-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-lg text-[11px] transition">×</button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        masterInventoryMobileList.innerHTML = filteredItems.map((item) => {
+          const originalIdx = inventoryMaster.indexOf(item);
+          return `
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 space-y-2.5 shadow-2xs">
+              <div class="flex items-center justify-between">
+                <input type="text" id="editRack_m_${originalIdx}" value="${item.rackSrNo || 'R-001'}" class="px-2 py-1 border border-slate-300 rounded-xl text-xs font-mono font-bold text-purple-700 bg-white focus:ring-2 focus:ring-purple-600 outline-none w-28" />
+                <button onclick="deleteMasterItem(${originalIdx})" class="text-xs bg-red-100 text-red-600 font-bold px-2.5 py-1.5 rounded-xl">Delete</button>
+              </div>
+              <div>
+                <input type="text" id="editName_m_${originalIdx}" value="${item.name}" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 bg-white focus:ring-2 focus:ring-purple-600 outline-none" />
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-0.5">Rate (₹)</label>
+                  <input type="number" id="editRate_m_${originalIdx}" value="${item.rate || 0}" step="0.01" inputmode="decimal" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-xl text-xs font-mono font-bold bg-white focus:ring-2 focus:ring-purple-600 outline-none text-emerald-600" />
+                </div>
+                <div>
+                  <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-0.5">Stock (${item.unit || 'pcs'})</label>
+                  <input type="number" id="editStock_m_${originalIdx}" value="${item.stock || 0}" step="0.01" inputmode="decimal" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-xl text-xs font-mono font-bold bg-white focus:ring-2 focus:ring-purple-600 outline-none ${(item.stock || 0) < 10 ? 'text-red-500' : 'text-slate-800'}" />
+                </div>
+              </div>
+              <button onclick="saveStockEditMobile(${originalIdx})" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl text-xs transition shadow-xs">Save Changes</button>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    window.saveStockEdit = function(index) {
+      const rackInput = document.getElementById(`editRack_${index}`);
+      const nameInput = document.getElementById(`editName_${index}`);
+      const rateInput = document.getElementById(`editRate_${index}`);
+      const stockInput = document.getElementById(`editStock_${index}`);
+
+      if (!rackInput || !nameInput || !rateInput || !stockInput) return;
+
+      inventoryMaster[index].rackSrNo = rackInput.value.trim() || 'R-001';
+      inventoryMaster[index].name = nameInput.value.trim();
+      inventoryMaster[index].rate = parseFloat(rateInput.value) || 0;
+      inventoryMaster[index].stock = parseFloat(stockInput.value) || 0;
+
+      saveInventoryToStorage();
+      renderMasterInventory();
+    };
+
+    window.saveStockEditMobile = function(index) {
+      const rackInput = document.getElementById(`editRack_m_${index}`);
+      const nameInput = document.getElementById(`editName_m_${index}`);
+      const rateInput = document.getElementById(`editRate_m_${index}`);
+      const stockInput = document.getElementById(`editStock_m_${index}`);
+
+      if (!rackInput || !nameInput || !rateInput || !stockInput) return;
+
+      inventoryMaster[index].rackSrNo = rackInput.value.trim() || 'R-001';
+      inventoryMaster[index].name = nameInput.value.trim();
+      inventoryMaster[index].rate = parseFloat(rateInput.value) || 0;
+      inventoryMaster[index].stock = parseFloat(stockInput.value) || 0;
+
+      saveInventoryToStorage();
+      renderMasterInventory();
+    };
+
+    saveMasterItemBtn.addEventListener('click', () => {
+      const rackSrNo = masterRackSrNo.value.trim() || 'R-001';
+      const name = masterItemName.value.trim();
+      const rate = parseFloat(masterItemRate.value) || 0;
+      const stock = parseFloat(masterItemStock.value) || 0;
+      const unit = masterItemUnit.value;
+      if (!name) return;
+
+      inventoryMaster.push({ rackSrNo, name, rate, stock, unit });
+      saveInventoryToStorage();
+      stockSearchInput.value = '';
+      renderMasterInventory();
+      toggleModal(addStockModalOverlay, false);
+    });
+
+    window.deleteMasterItem = function(index) {
+      inventoryMaster.splice(index, 1);
+      saveInventoryToStorage();
+      renderMasterInventory();
+    };
+
+    openMasterInventoryModalBtn.addEventListener('click', () => {
+      closeDrawer();
+      stockSearchInput.value = '';
+      renderMasterInventory();
+      toggleModal(masterInventoryModalOverlay, true);
+    });
+
+    closeMasterInventoryModalBtn.addEventListener('click', () => {
+      toggleModal(masterInventoryModalOverlay, false);
+    });
+
+    itemNameInput.addEventListener('input', function() {
+      const query = this.value.trim().toLowerCase();
+      if (!query) {
+        suggestionsBox.classList.add('hidden');
+        return;
+      }
+
+      const matches = inventoryMaster.filter(item => 
+        item.name.toLowerCase().includes(query) || 
+        (item.rackSrNo || '').toLowerCase().includes(query)
+      );
+
+      if (matches.length > 0) {
+        suggestionsBox.innerHTML = matches.map(item => `
+          <div onclick="selectSuggestion('${item.name.replace(/'/g, "\\'")}', ${item.rate || 0}, '${item.unit || 'pcs'}', '${item.rackSrNo || 'R-001'}')" class="px-3 py-2 hover:bg-purple-50 cursor-pointer flex justify-between items-center transition">
+            <span class="font-bold text-slate-800">[${item.rackSrNo || 'R-001'}] ${item.name} <span class="text-[10px] text-slate-500 font-normal">(Stock: ${item.stock || 0} ${item.unit || 'pcs'})</span></span>
+            <span class="font-mono text-emerald-600 font-bold">₹${item.rate || 0}/unit</span>
+          </div>
+        `).join('');
+        suggestionsBox.classList.remove('hidden');
+      } else {
+        suggestionsBox.classList.add('hidden');
+      }
+    });
+
+    window.selectSuggestion = function(name, rate, unit, rack) {
+      itemNameInput.value = `[${rack}] ${name}`;
+      ratePerKg.value = rate;
+      if (unit) {
+        purchaseUnit.value = unit;
+      }
+      suggestionsBox.classList.add('hidden');
+    };
+
+    document.addEventListener('click', (e) => {
+      if (!itemNameInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+        suggestionsBox.classList.add('hidden');
+      }
+    });
+
+    fixNameToggle.addEventListener('change', () => {
+      if (fixNameToggle.checked) {
+        merchantNameInput.readOnly = true;
+        merchantNameInput.classList.add('bg-slate-200', 'cursor-not-allowed');
+        nameFixLabel.textContent = "Fixed 🔒";
+        nameFixLabel.classList.add('text-emerald-600');
+        localStorage.setItem('fixedMerchantName', merchantNameInput.value);
+        localStorage.setItem('isNameFixed', 'true');
+      } else {
+        merchantNameInput.readOnly = false;
+        merchantNameInput.classList.remove('bg-slate-200', 'cursor-not-allowed');
+        nameFixLabel.textContent = "Fixit";
+        nameFixLabel.classList.remove('text-emerald-600');
+        localStorage.removeItem('isNameFixed');
+      }
+    });
+
+    fixUpiToggle.addEventListener('change', () => {
+      if (fixUpiToggle.checked) {
+        upiInput.readOnly = true;
+        upiInput.classList.add('bg-slate-200', 'cursor-not-allowed');
+        upiFixLabel.textContent = "Fixed 🔒";
+        upiFixLabel.classList.add('text-emerald-600');
+        localStorage.setItem('fixedUpiValue', upiInput.value);
+        localStorage.setItem('isUpiFixed', 'true');
+      } else {
+        upiInput.readOnly = false;
+        upiInput.classList.remove('bg-slate-200', 'cursor-not-allowed');
+        upiFixLabel.textContent = "Fixit";
+        upiFixLabel.classList.remove('text-emerald-600');
+        localStorage.removeItem('isUpiFixed');
+      }
+    });
+
+    function loadFixedStates() {
+      if (localStorage.getItem('isNameFixed') === 'true') {
+        merchantNameInput.value = localStorage.getItem('fixedMerchantName') || '';
+        fixNameToggle.checked = true;
+        fixNameToggle.dispatchEvent(new Event('change'));
+      }
+      if (localStorage.getItem('isUpiFixed') === 'true') {
+        upiInput.value = localStorage.getItem('fixedUpiValue') || '';
+        fixUpiToggle.checked = true;
+        fixUpiToggle.dispatchEvent(new Event('change'));
+      }
+    }
+
+    function openDrawer() {
+      drawerOverlay.classList.remove('hidden');
+      setTimeout(() => {
+        drawerOverlay.classList.remove('opacity-0');
+        sideDrawer.classList.remove('-translate-x-full');
+      }, 10);
+    }
+
+    function closeDrawer() {
+      drawerOverlay.classList.add('opacity-0');
+      sideDrawer.classList.add('-translate-x-full');
+      setTimeout(() => { drawerOverlay.classList.add('hidden'); }, 300);
+    }
+
+    closeDrawerBtn.addEventListener('click', closeDrawer);
+    drawerOverlay.addEventListener('click', closeDrawer);
+
+    document.querySelectorAll('[data-theme]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const theme = e.currentTarget.getAttribute('data-theme');
+        document.body.className = `${theme} bg-slate-100 text-slate-800 min-h-screen flex flex-col items-center justify-between antialiased pb-6`;
+        activeThemeKey = theme;
+      });
+    });
+
+    if (cardStandeeBtn) cardStandeeBtn.addEventListener('click', () => setMode('standee'));
+    if (cardGenericBtn) cardGenericBtn.addEventListener('click', () => setMode('generic'));
+
+    function setMode(mode) {
+      currentMode = mode;
+      if (!fixUpiToggle.checked) upiInput.value = "";
+      
+      if (mode === 'standee') {
+        upiFieldLabel.innerHTML = 'UPI ID / VPA <span class="text-red-500">*</span>';
+        upiInput.placeholder = "e.g. Terminal 9 Digits";
+        upiInput.setAttribute('maxlength', '9');
+      } else {
+        upiFieldLabel.innerHTML = 'UPI ID / VPA <span class="text-red-500">*</span>';
+        upiInput.placeholder = "e.g. XYZ@UPI";
+        upiInput.removeAttribute('maxlength');
+      }
+      updateVpaPreview();
+    }
+
+    upiInput.addEventListener('input', function() {
+      if (currentMode === 'standee') {
+        this.value = this.value.replace(/\D/g, '').slice(0, 9);
+      }
+      updateVpaPreview();
+    });
+
+    document.querySelectorAll('.quick-amt-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const amt = parseFloat(btn.getAttribute('data-amt'));
+        const current = parseFloat(amountInput.value) || 0;
+        amountInput.value = (current + amt).toFixed(2);
+      });
+    });
+
+    document.getElementById('clearAmtBtn').addEventListener('click', () => { amountInput.value = ''; });
+
+    function openCalcModal() {
+      closeDrawer();
+      toggleModal(calcModalOverlay, true);
+    }
+    function closeCalcModal() {
+      toggleModal(calcModalOverlay, false);
+      suggestionsBox.classList.add('hidden');
+    }
+
+    closeCalcModalBtn.addEventListener('click', closeCalcModal);
+
+    addItemBtn.addEventListener('click', () => {
+      const name = itemNameInput.value.trim() || 'Custom Item';
+      let itemCost = 0;
+      let displayUnitStr = "";
+      let numericQty = 1;
+      let selectedUnit = purchaseUnit.value.toLowerCase();
+
+      if (flatPriceToggle.checked) {
+        itemCost = parseFloat(flatPriceInput.value) || 0;
+        displayUnitStr = "Flat Amount";
+      } else {
+        const rate = parseFloat(ratePerKg.value) || 0;
+        const qty = parseFloat(purchaseQty.value) || 1;
+        if (rate <= 0) {
+          ratePerKg.focus();
+          ratePerKg.classList.add('border-red-500', 'ring-2', 'ring-red-500');
+          setTimeout(() => ratePerKg.classList.remove('border-red-500', 'ring-2', 'ring-red-500'), 1500);
+          return;
+        }
+        numericQty = qty;
+
+        if (selectedUnit === 'pcs') {
+          itemCost = rate * qty;
+        } else if (selectedUnit === 'grams' || selectedUnit === 'ml') {
+          itemCost = (rate / 1000) * qty;
+          numericQty = qty / 1000;
+        } else {
+          itemCost = rate * qty;
+        }
+        displayUnitStr = `₹${rate}/unit × ${qty} ${purchaseUnit.value}`;
+      }
+
+      if (itemCost <= 0) return;
+
+      cartItems.push({ name, cost: itemCost, detail: displayUnitStr, qty: numericQty });
+      itemNameInput.value = '';
+      ratePerKg.value = '';
+      purchaseQty.value = '';
+      flatPriceInput.value = '';
+      suggestionsBox.classList.add('hidden');
+      renderCartTable();
+      itemNameInput.focus();
+    });
+
+    clearCartBtn.addEventListener('click', () => {
+      cartItems = [];
+      custName.value = '';
+      custPhone.value = '';
+      gstRateInput.value = "";
+      discountInput.value = "";
+      cashSplitInput.value = "";
+      renderCartTable();
+    });
+
+    function renderCartTable() {
+      if (cartItems.length === 0) {
+        cartTableBody.innerHTML = '<tr id="emptyCartRow"><td colspan="3" class="p-6 text-center text-slate-400 italic">No items added to bill yet.</td></tr>';
+      } else {
+        cartTableBody.innerHTML = cartItems.map((item, idx) => `
+          <tr>
+            <td class="p-2.5 font-mono">
+              <span class="font-sans font-bold text-slate-800 block">${item.name}</span>
+              <span class="text-[11px] text-slate-500">${item.detail}</span>
+            </td>
+            <td class="p-2.5 text-right font-mono font-bold text-slate-800">₹${item.cost.toFixed(2)}</td>
+            <td class="p-2.5 text-center">
+              <button onclick="removeCartItem(${idx})" class="text-red-500 font-bold hover:underline">×</button>
+            </td>
+          </tr>
+        `).join('');
+      }
+      calculateCartTotals();
+    }
+
+    window.removeCartItem = function(index) {
+      cartItems.splice(index, 1);
+      renderCartTable();
+    };
+
+    function calculateCartTotals() {
+      const subtotal = cartItems.reduce((acc, i) => acc + i.cost, 0);
+      const gstPct = parseFloat(gstRateInput.value) || 0;
+      const taxAmount = (subtotal * gstPct) / 100;
+      const discount = parseFloat(discountInput.value) || 0;
+      const grandTotal = Math.max(0, subtotal + taxAmount - discount);
+      
+      const cashPaid = parseFloat(cashSplitInput.value) || 0;
+      let remainingUpi = grandTotal - cashPaid;
+      let changeReturn = 0;
+
+      if (remainingUpi < 0) {
+        changeReturn = Math.abs(remainingUpi);
+        remainingUpi = 0;
+        changeReturnRow.classList.remove('hidden');
+        changeReturnText.textContent = `₹ ${changeReturn.toFixed(2)}`;
+      } else {
+        changeReturnRow.classList.add('hidden');
+      }
+
+      subtotalText.textContent = `₹ ${subtotal.toFixed(2)}`;
+      gstPctDisplay.textContent = gstPct.toString();
+      gstCalculatedText.textContent = `+₹ ${taxAmount.toFixed(2)}`;
+      discountCalculatedText.textContent = `-₹ ${discount.toFixed(2)}`;
+      grandTotalText.textContent = `₹ ${grandTotal.toFixed(2)}`;
+      billResult.textContent = `₹ ${remainingUpi.toFixed(2)}`;
+
+      return { subtotal, gstPct, taxAmount, discount, grandTotal, cashPaid, remainingUpi, changeReturn };
+    }
+
+    gstRateInput.addEventListener('input', calculateCartTotals);
+    discountInput.addEventListener('input', calculateCartTotals);
+    cashSplitInput.addEventListener('input', calculateCartTotals);
+
+    // KITCHEN SYSTEM REALTIME LOGIC
+    function setupKDSListener(uid) {
+      if (!window.firebaseDb) return;
+      const q = window.query(
+        window.collection(window.firebaseDb, "live_orders", uid, "orders"),
+        window.where("status", "!=", "completed")
+      );
+      
+      unsubscribeKDS = window.onSnapshot(q, (snapshot) => {
+        let cloudOrders = [];
+        snapshot.forEach(doc => {
+          cloudOrders.push({ id: doc.id, ...doc.data() });
+        });
+        cloudOrders.sort((a, b) => a.timestamp - b.timestamp);
+        renderKDS(cloudOrders);
+      });
+    }
+
+    function renderKDS(orders) {
+      const container = document.getElementById('kdsOrdersContainer');
+      if (orders.length === 0) {
+        container.innerHTML = `<div class="col-span-full p-8 text-center text-slate-500 font-bold bg-white rounded-2xl border border-slate-200">No active orders in kitchen.</div>`;
+        return;
+      }
+      
+      container.innerHTML = orders.map(order => {
+        let statusColor = order.status === 'pending' ? 'bg-amber-100 text-amber-800 border-amber-300' :
+                          order.status === 'preparing' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                          'bg-emerald-100 text-emerald-800 border-emerald-300';
+                          
+        let nextAction = order.status === 'pending' ? `<button onclick="updateOrderStatus('${order.id}', 'preparing')" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs transition">Start Preparing</button>` :
+                         order.status === 'preparing' ? `<button onclick="updateOrderStatus('${order.id}', 'ready')" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs transition">Mark Ready</button>` :
+                         `<button onclick="updateOrderStatus('${order.id}', 'completed')" class="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-xs transition">Complete & Clear</button>`;
+
+        let itemsHtml = (order.items || []).map(item => `
+          <li class="flex justify-between pb-1 mb-1 border-b border-slate-100/50 last:border-0">
+            <span><span class="font-bold pr-1">${item.qty}x</span> ${item.name}</span>
+          </li>
+        `).join('');
+
+        const timeString = new Date(order.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        return `
+          <div class="bg-white p-4 rounded-2xl border-2 ${statusColor} shadow-md flex flex-col">
+            <div class="flex justify-between items-center mb-2 border-b border-slate-200 pb-2">
+              <span class="font-black text-sm text-slate-800">#${String(order.id).slice(-4).toUpperCase()} <span class="text-[10px] text-slate-400 font-normal ml-1">@ ${timeString}</span></span>
+              <span class="text-[10px] uppercase font-bold px-2.5 py-1 rounded-full ${statusColor}">${order.status}</span>
+            </div>
+            <div class="text-xs font-bold text-slate-600 mb-3 bg-slate-50 p-2 rounded-lg">👤 ${order.customer}</div>
+            <ul class="grow mb-4 text-xs font-medium text-slate-700 list-inside">
+              ${itemsHtml}
+            </ul>
+            <div class="mt-auto pt-2">
+              ${nextAction}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.updateOrderStatus = async function(orderId, newStatus) {
+      if (currentUserUid && window.firebaseDb) {
+        const orderRef = window.doc(window.firebaseDb, "live_orders", currentUserUid, "orders", orderId);
+        await window.updateDoc(orderRef, { status: newStatus });
+      } else {
+        const idx = localLiveOrders.findIndex(o => o.id === orderId);
+        if (idx > -1) {
+          if (newStatus === 'completed') {
+            localLiveOrders.splice(idx, 1);
+          } else {
+            localLiveOrders[idx].status = newStatus;
+          }
+          localStorage.setItem('localLiveOrders', JSON.stringify(localLiveOrders));
+          renderKDS(localLiveOrders);
+        }
+      }
+    };
+
+    applyCalcToAmountBtn.addEventListener('click', async () => {
+      const { grandTotal, remainingUpi, cashPaid } = calculateCartTotals();
+      if (grandTotal > 0) {
+        // 1. Deduct Stock Locally
+        cartItems.forEach(cartItem => {
+          const found = inventoryMaster.find(inv => cartItem.name.toLowerCase().includes(inv.name.toLowerCase()));
+          if (found) {
+            found.stock = Math.max(0, (found.stock || 0) - (cartItem.qty || 1));
+          }
+        });
+        saveInventoryToStorage();
+        renderMasterInventory();
+
+        // 2. Prepare order object for Kitchen
+        const kdsOrder = {
+          customer: custName.value.trim() || 'Walk-in',
+          items: cartItems.map(i => ({ name: i.name, qty: i.qty })),
+          status: 'pending',
+          timestamp: Date.now(),
+          total: grandTotal
+        };
+
+        // 3. Push to Firebase Live Orders Collection (or local storage if offline)
+        if (currentUserUid && window.firebaseDb) {
+          try {
+            await window.addDoc(window.collection(window.firebaseDb, "live_orders", currentUserUid, "orders"), kdsOrder);
+          } catch(e) { console.error("Error pushing order to kitchen:", e); }
+        } else {
+          kdsOrder.id = Date.now().toString();
+          localLiveOrders.push(kdsOrder);
+          localStorage.setItem('localLiveOrders', JSON.stringify(localLiveOrders));
+          renderKDS(localLiveOrders);
+        }
+
+        // 4. Proceed with rest of the original logic
+        amountInput.value = remainingUpi.toFixed(2);
+        
+        logTransaction({
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          isoDate: new Date().toISOString().slice(0, 10),
+          customer: custName.value.trim() || 'Walk-in',
+          phone: custPhone.value.trim() || '',
+          amount: grandTotal,
+          cashAmount: cashPaid,
+          upiAmount: remainingUpi
+        });
+
+        closeCalcModal();
+        await generateAndShowStandee();
+      }
+    });
+
+    function logTransaction(item) {
+      salesLedger.unshift(item);
+      localStorage.setItem('salesLedgerLogs', JSON.stringify(salesLedger));
+      if (currentUserUid) {
+        saveLedgerToCloud();
+      }
+    }
+
+    function renderLedgerModal() {
+      const filterValue = ledgerDateFilter.value;
+      const todayStr = new Date().toISOString().slice(0, 10);
+      
+      const yesterdayDate = new Date();
+      yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+      const yesterdayStr = yesterdayDate.toISOString().slice(0, 10);
+
+      if (filterValue === 'custom') {
+        customDateInput.classList.remove('hidden');
+      } else {
+        customDateInput.classList.add('hidden');
+      }
+
+      const filteredLogs = salesLedger.filter(item => {
+        const itemDate = item.isoDate || todayStr;
+        if (filterValue === 'today') return itemDate === todayStr;
+        if (filterValue === 'yesterday') return itemDate === yesterdayStr;
+        if (filterValue === 'custom') {
+          const selectedCustomDate = customDateInput.value;
+          return selectedCustomDate ? itemDate === selectedCustomDate : true;
+        }
+        return true;
+      });
+
+      const totalRevenue = filteredLogs.reduce((sum, i) => sum + i.amount, 0);
+      const totalCash = filteredLogs.reduce((sum, i) => sum + (i.cashAmount || 0), 0);
+      const totalUpi = filteredLogs.reduce((sum, i) => sum + (i.upiAmount || i.amount), 0);
+
+      ledgerTotalSales.textContent = `₹ ${totalRevenue.toFixed(2)}`;
+      ledgerCount.textContent = filteredLogs.length;
+      ledgerCashTotal.textContent = `₹${totalCash.toFixed(2)}`;
+      ledgerUpiTotal.textContent = `₹${totalUpi.toFixed(2)}`;
+
+      if (filteredLogs.length === 0) {
+        ledgerTableBody.innerHTML = `<tr><td colspan="3" class="p-8 text-center text-slate-400 italic">No transactions recorded for this period.</td></tr>`;
+      } else {
+        ledgerTableBody.innerHTML = filteredLogs.map(item => {
+          const originalIdx = salesLedger.indexOf(item);
+          return `
+            <tr class="transaction-row cursor-pointer select-none transition hover:bg-slate-50 relative" data-index="${originalIdx}">
+              <td class="p-2.5 font-mono text-slate-500">${item.isoDate || 'Today'} • ${item.time}</td>
+              <td class="p-2.5 font-bold text-slate-800">
+                ${item.customer}
+                ${item.phone ? `<span class="block text-[11px] font-mono text-slate-500 font-normal">+91 ${item.phone}</span>` : ''}
+              </td>
+              <td class="p-2.5 text-right font-mono font-extrabold brand-text flex items-center justify-end gap-2">
+                <span class="amount-text">₹${item.amount.toFixed(2)}</span>
+                <button onclick="deleteLedgerItem(${originalIdx})" class="delete-btn hidden px-2 py-0.5 bg-red-500 text-white rounded-lg text-xs font-bold shadow hover:bg-red-600">×</button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+        attachLongPressEvents();
+      }
+    }
+
+    ledgerDateFilter.addEventListener('change', renderLedgerModal);
+    customDateInput.addEventListener('change', renderLedgerModal);
+
+    openLedgerModalBtn.addEventListener('click', () => {
+      closeDrawer();
+      customDateInput.value = new Date().toISOString().slice(0, 10);
+      ledgerDateFilter.value = 'today';
+      renderLedgerModal();
+      toggleModal(ledgerModalOverlay, true);
+    });
+
+    closeLedgerModalBtn.addEventListener('click', () => toggleModal(ledgerModalOverlay, false));
+
+    let holdTimer = null;
+    const holdDuration = 600;
+
+    function attachLongPressEvents() {
+      document.querySelectorAll('.transaction-row').forEach(row => {
+        const startHold = (e) => {
+          if (e.target.classList.contains('delete-btn')) return;
+
+          holdTimer = setTimeout(() => {
+            if (navigator.vibrate) navigator.vibrate(50);
+            
+            document.querySelectorAll('.delete-btn').forEach(btn => btn.classList.add('hidden'));
+            
+            const deleteBtn = row.querySelector('.delete-btn');
+            if (deleteBtn) {
+              deleteBtn.classList.remove('hidden');
+            }
+          }, holdDuration);
+        };
+
+        const cancelHold = () => {
+          clearTimeout(holdTimer);
+        };
+
+        row.addEventListener('mousedown', startHold);
+        row.addEventListener('mouseup', cancelHold);
+        row.addEventListener('mouseleave', cancelHold);
+
+        row.addEventListener('touchstart', startHold);
+        row.addEventListener('touchend', cancelHold);
+        row.addEventListener('touchmove', cancelHold);
+      });
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.transaction-row')) {
+        document.querySelectorAll('.delete-btn').forEach(btn => btn.classList.add('hidden'));
+      }
+    });
+
+    window.deleteLedgerItem = function(index) {
+      if (index >= 0 && index < salesLedger.length) {
+        salesLedger.splice(index, 1);
+        localStorage.setItem('salesLedgerLogs', JSON.stringify(salesLedger));
+        renderLedgerModal();
+        if (liveSearchInput.value.trim() !== '') {
+          renderSearchResults(liveSearchInput.value.trim().toLowerCase());
+        }
+        if (currentUserUid) {
+          saveLedgerToCloud();
+        }
+      }
+    };
+
+    const RECOVER_HOLD_DURATION = 5000;
+    let recoverTimer = null;
+    let progressInterval = null;
+    let startTime = null;
+
+    const startRecoverHold = (e) => {
+      startTime = Date.now();
+      clearProgressBar.style.width = '0%';
+
+      progressInterval = setInterval(() => {
+        if (!startTime) return;
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(100, (elapsed / RECOVER_HOLD_DURATION) * 100);
+        clearProgressBar.style.width = `${progress}%`;
+      }, 50);
+
+      recoverTimer = setTimeout(() => {
+        executeRecovery();
+        resetRecoverHold();
+      }, RECOVER_HOLD_DURATION);
+    };
+
+    const cancelRecoverHold = () => {
+      clearTimeout(recoverTimer);
+      clearInterval(progressInterval);
+      resetRecoverHold();
+    };
+
+    const resetRecoverHold = () => {
+      clearProgressBar.style.width = '0%';
+      startTime = null;
+    };
+
+    function executeRecovery() {
+      if (deletedBackup.length > 0) {
+        salesLedger = [...deletedBackup];
+        localStorage.setItem('salesLedgerLogs', JSON.stringify(salesLedger));
+        renderLedgerModal();
+        if (currentUserUid) {
+          saveLedgerToCloud();
+        }
+      }
+    }
+
+    clearLedgerBtn.addEventListener('click', (e) => {
+      if (startTime && (Date.now() - startTime >= 400)) return;
+
+      if (salesLedger.length > 0) {
+        deletedBackup = [...salesLedger];
+        localStorage.setItem('salesLedgerDeletedBackup', JSON.stringify(deletedBackup));
+        salesLedger = [];
+        localStorage.removeItem('salesLedgerLogs');
+        renderLedgerModal();
+        if (currentUserUid) {
+          saveLedgerToCloud();
+        }
+      }
+    });
+
+    clearLedgerBtn.addEventListener('mousedown', startRecoverHold);
+    clearLedgerBtn.addEventListener('mouseup', cancelRecoverHold);
+    clearLedgerBtn.addEventListener('mouseleave', cancelRecoverHold);
+    clearLedgerBtn.addEventListener('touchstart', startRecoverHold);
+    clearLedgerBtn.addEventListener('touchend', cancelRecoverHold);
+    clearLedgerBtn.addEventListener('touchcancel', cancelRecoverHold);
+
+    exportCsvBtn.addEventListener('click', () => {
+      if (salesLedger.length === 0) return;
+      let csvContent = "data:text/csv;charset=utf-8,Date,Time,Customer,Mobile,Total Bill,Cash Paid,UPI Paid\n";
+      salesLedger.forEach(row => {
+        csvContent += `"${row.isoDate || ''}","${row.time}","${row.customer}","${row.phone || ''}","${row.amount}","${row.cashAmount || 0}","${row.upiAmount || row.amount}"\n`;
+      });
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `UPI_Studio_Sales_Ledger_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+    whatsappInvoiceBtn.addEventListener('click', () => {
+      const merchant = merchantNameInput.value.trim() || 'Merchant Store';
+      
+      let phone = custPhone.value.trim().replace(/\D/g, '');
+      if (phone.length === 10) {
+        phone = '91' + phone;
+      }
+
+      const customer = custName.value.trim() || 'Valued Customer';
+      const vpa = getVpa();
+      const dateStr = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      const { subtotal, gstPct, taxAmount, discount, grandTotal, cashPaid, remainingUpi } = calculateCartTotals();
+
+      let itemsListStr = "";
+      if (cartItems.length > 0) {
+        itemsListStr = cartItems.map((item, index) => 
+          `*${index + 1}. ${item.name}*\n   ${item.detail} = *₹${item.cost.toFixed(2)}*`
+        ).join('\n\n');
+      } else {
+        itemsListStr = `*1. Custom Item Purchase*\n   1 Unit = *₹${grandTotal.toFixed(2)}*`;
+      }
+
+      let summaryStr = `───────────────────────────\n` +
+                       `*Subtotal:* ₹${subtotal.toFixed(2)}\n`;
+      
+      if (gstPct > 0) {
+        summaryStr += `*GST Tax (${gstPct}%):* +₹${taxAmount.toFixed(2)}\n`;
+      }
+      if (discount > 0) {
+        summaryStr += `*Discount:* -₹${discount.toFixed(2)}\n`;
+      }
+      summaryStr += `*Grand Total Bill:* ₹${grandTotal.toFixed(2)}\n` +
+                    `───────────────────────────\n`;
+
+      if (cashPaid > 0) {
+        summaryStr += `*Paid in Cash:* ₹${cashPaid.toFixed(2)}\n` +
+                      `*Balance Paid via UPI:* ₹${remainingUpi.toFixed(2)}\n` +
+                      `───────────────────────────\n`;
+      }
+
+      const upiPayLink = `upi://pay?pa=${vpa}&pn=${encodeURIComponent(merchant)}&am=${remainingUpi.toFixed(2)}&cu=INR`;
+      const msg = `🧾 *${merchant.toUpperCase()}*\n` +
+                  `✅ *OFFICIAL DIGITAL RECEIPT*\n` +
+                  `📅 Date: ${dateStr} | ⏰ ${timeStr}\n` +
+                  `👤 Customer: ${customer}\n` +
+                  `───────────────────────────\n\n` +
+                  `*PURCHASED ITEMS:*\n\n${itemsListStr}\n\n` +
+                  `${summaryStr}\n` +
+                  `💳 *Pay Balance via UPI QR:* \n${upiPayLink}\n\n` +
+                  `✨ *Thank you for shopping with us!*`;
+
+      const waUrl = phone.length > 5 
+        ? `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(msg)}`
+        : `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+        
+      window.open(waUrl, '_blank');
+    });
+
+    function openQrModal() { toggleModal(qrResultModal, true); }
+    function closeQrModal() { toggleModal(qrResultModal, false); }
+
+    closeQrModalBtn.addEventListener('click', closeQrModal);
+    qrResultModal.addEventListener('click', (e) => {
+      if (e.target === qrResultModal) closeQrModal();
+    });
+
+    function getDigits() { return upiInput.value.replace(/\D/g, '').slice(0, 9) || '000000000'; }
+    function getVpa() {
+      if (currentMode === 'standee') return `Q${getDigits()}@ybl`;
+      return upiInput.value.trim() || 'yourvpa@upi';
+    }
+
+    function updateVpaPreview() { vpaPreview.textContent = getVpa(); }
+
+    function drawRoundedRect(ctx, x, y, width, height, radius) {
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(x, y, width, height, radius);
+      else {
+        ctx.moveTo(x + radius, y);
+        ctx.arcTo(x + width, y, x + width, y + height, radius);
+        ctx.arcTo(x + width, y + height, x, y + height, radius);
+        ctx.arcTo(x, y + height, x, y, radius);
+        ctx.arcTo(x, y, x + width, y, radius);
+      }
+      ctx.fill();
+    }
+
+    function generateQrCode(text) {
+      return new Promise((resolve) => {
+        rawQrWrapper.innerHTML = '';
+        new QRCode(rawQrWrapper, {
+          text: text,
+          width: 560,
+          height: 560,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+
+        const checkCanvas = setInterval(() => {
+          const qrCanvas = rawQrWrapper.querySelector('canvas');
+          if (qrCanvas) {
+            clearInterval(checkCanvas);
+            resolve(qrCanvas);
+          }
+        }, 20);
+      });
+    }
+
+    async function generateAndShowStandee() {
+      const merchant = merchantNameInput.value.trim() || 'Merchant Name';
+      const vpa = getVpa();
+      const amount = amountInput.value.trim();
+      const activeTheme = themeMap[activeThemeKey] || themeMap['theme-purple'];
+
+      const SCALE = Math.max(2, window.devicePixelRatio || 2);
+
+      let upiUri = `upi://pay?pa=${vpa}&pn=${encodeURIComponent(merchant)}&mc=0000&mode=02&purpose=00&cu=INR`;
+      if (amount) upiUri += `&am=${encodeURIComponent(amount)}`;
+
+      const qrSourceCanvas = await generateQrCode(upiUri);
+      const centerX = canvas.width / 2;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      if (currentMode === 'standee') {
+        ctx.fillStyle = activeTheme.primary;
+        ctx.beginPath();
+        ctx.arc(centerX, 50 * SCALE, 24 * SCALE, 0, 2 * Math.PI);
+        ctx.fill();
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = `800 ${18 * SCALE}px 'Plus Jakarta Sans', sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("SM", centerX, 50 * SCALE);
+
+        ctx.fillStyle = activeTheme.primary;
+        ctx.font = `800 ${22 * SCALE}px 'Plus Jakarta Sans', sans-serif`;
+        ctx.textBaseline = "alphabetic";
+        ctx.fillText("Solid Money App", centerX, 102 * SCALE);
+
+        ctx.font = `700 ${13.5 * SCALE}px 'Plus Jakarta Sans', sans-serif`;
+        const textWidth = ctx.measureText(merchant).width;
+        const pillWidth = Math.max(180 * SCALE, Math.min(320 * SCALE, textWidth + (32 * SCALE)));
+        const pillHeight = 32 * SCALE;
+        const pillX = centerX - (pillWidth / 2);
+        const pillY = 116 * SCALE;
+
+        ctx.fillStyle = activeTheme.pill;
+        drawRoundedRect(ctx, pillX, pillY, pillWidth, pillHeight, 16 * SCALE);
+
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(merchant, centerX, pillY + (16 * SCALE));
+
+        const qrSize = 210 * SCALE;
+        const qrX = centerX - (qrSize / 2);
+        ctx.drawImage(qrSourceCanvas, qrX, 162 * SCALE, qrSize, qrSize);
+
+        if (amount) {
+          ctx.fillStyle = "#10b981";
+          ctx.font = `800 ${14 * SCALE}px 'JetBrains Mono', monospace`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "alphabetic";
+          ctx.fillText(`PAY: ₹${amount}`, centerX, 396 * SCALE);
+        }
+
+        ctx.fillStyle = "#1e293b";
+        ctx.font = `800 ${15 * SCALE}px 'Plus Jakarta Sans', sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "alphabetic";
+        ctx.fillText("BHIM  |  UPI", centerX, 422 * SCALE);
+
+        ctx.fillStyle = "#64748b";
+        ctx.font = `600 ${8 * SCALE}px 'Plus Jakarta Sans', sans-serif`;
+        ctx.fillText("BHARAT INTERFACE FOR MONEY     UNIFIED PAYMENTS INTERFACE", centerX, 436 * SCALE);
+
+        const digits = getDigits();
+        ctx.fillStyle = "#0f172a";
+        ctx.font = `700 ${10.5 * SCALE}px 'JetBrains Mono', monospace`;
+        ctx.fillText(`Terminal 1-Q${digits}`, centerX, 452 * SCALE);
+
+      } else {
+        ctx.fillStyle = activeTheme.primary;
+        ctx.fillRect(0, 0, canvas.width, 80 * SCALE);
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = `800 ${16 * SCALE}px 'Plus Jakarta Sans', sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "alphabetic";
+        ctx.fillText("SCAN & PAY WITH ANY UPI APP", centerX, 38 * SCALE);
+
+        ctx.font = `600 ${10 * SCALE}px 'Plus Jakarta Sans', sans-serif`;
+        ctx.fillStyle = "#ffffff";
+        ctx.globalAlpha = 0.8;
+        ctx.fillText("GPay • PhonePe • Paytm • BHIM", centerX, 58 * SCALE);
+        ctx.globalAlpha = 1.0;
+
+        ctx.fillStyle = "#0f172a";
+        ctx.font = `800 ${18 * SCALE}px 'Plus Jakarta Sans', sans-serif`;
+        ctx.textAlign = "center";
+        ctx.fillText(merchant, centerX, 112 * SCALE);
+
+        ctx.fillStyle = activeTheme.primary;
+        ctx.font = `700 ${12 * SCALE}px 'JetBrains Mono', monospace`;
+        ctx.fillText(vpa, centerX, 130 * SCALE);
+
+        const qrSize = 210 * SCALE;
+        const qrX = centerX - (qrSize / 2);
+        ctx.drawImage(qrSourceCanvas, qrX, 146 * SCALE, qrSize, qrSize);
+
+        if (amount) {
+          ctx.fillStyle = "#10b981";
+          ctx.font = `800 ${14 * SCALE}px 'JetBrains Mono', monospace`;
+          ctx.textAlign = "center";
+          ctx.fillText(`Amount: ₹${amount}`, centerX, 382 * SCALE);
+        }
+
+        ctx.fillStyle = "#1e293b";
+        ctx.font = `800 ${15 * SCALE}px 'Plus Jakarta Sans', sans-serif`;
+        ctx.textAlign = "center";
+        ctx.fillText("BHIM  |  UPI", centerX, 406 * SCALE);
+      }
+
+      toggleModal(upiConfigModalOverlay, false);
+      openQrModal();
+    }
+
+    window.addEventListener('load', async () => {
+      document.fonts.ready.then(async () => {
+        loadFixedStates();
+        updateVpaPreview();
+        checkLowStockAlerts();
+      });
+    });
+
+    renderBtn.addEventListener('click', generateAndShowStandee);
+
+    downloadBtn.addEventListener('click', function() {
+      const link = document.createElement('a');
+      const sanitizedName = merchantNameInput.value.trim().replace(/\s+/g, '_') || 'Merchant';
+      link.href = canvas.toDataURL("image/png");
+      link.download = `UPI-Studio-${sanitizedName}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+    printBtn.addEventListener('click', () => { window.print(); });
+  </script>
+</body>
+</html>
