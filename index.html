@@ -282,6 +282,15 @@
     }
 
   </style>
+<style id="bike-service-simple-ui">
+/* Simple Bike Service UI */
+.bs-simple-card{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:14px;box-shadow:0 2px 8px rgba(15,23,42,.05)}
+.bs-step{display:flex;align-items:center;gap:8px;min-width:120px;padding:10px 12px;border-radius:14px;font-size:11px;font-weight:800;white-space:nowrap;border:1px solid #e2e8f0;background:#fff}
+.bs-step-active{border-color:#7c3aed;background:#f5f3ff;color:#6d28d9}
+.bs-job-card{border:1px solid #e2e8f0;border-radius:18px;background:#fff;padding:14px}
+.bs-job-actions{display:flex;gap:7px;flex-wrap:wrap}
+@media(max-width:640px){.bs-step{min-width:110px}.bs-job-actions button{flex:1;min-width:88px}.bsf{font-size:16px!important}}
+</style>
 </head>
 <body class="theme-purple bg-slate-100 text-slate-800 min-h-screen flex flex-col items-center justify-between antialiased selection:bg-purple-500 selection:text-white pb-6">
 
@@ -990,6 +999,7 @@
     <div class="bg-white border-b border-slate-200 px-3 sm:px-5 py-2 flex gap-2 overflow-x-auto shrink-0">
       <button class="restaurant-tab brand-bg text-white px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap" data-tab="counter">🧾 Counter Billing</button>
       <button class="restaurant-tab bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap" data-tab="orders">📋 Orders</button>
+      <button class="restaurant-tab bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap" data-tab="cancelled">❌ Cancelled Orders</button>
       <button class="restaurant-tab bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap" data-tab="menu">🍔 Menu Management</button>
       <button class="restaurant-tab bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap" data-tab="tables">🪑 Tables</button>
     </div>
@@ -1010,28 +1020,113 @@
                 <select id="restOrderType" class="rest-input"><option>Dine-In</option><option>Takeaway</option><option>Delivery</option></select>
               </div>
               <div id="restTableWrap" class="grid grid-cols-2 gap-2"><select id="restTable" class="rest-input"><option value="">Select Table</option></select><input id="restNotes" class="rest-input" placeholder="Order notes / special instructions"></div>
-              <div class="flex flex-col sm:flex-row gap-2"><input id="restMenuSearch" class="rest-input flex-1" placeholder="🔎 Search food items..."><div id="restCategories" class="flex gap-1 overflow-x-auto pb-1"></div></div>
-              <div id="restMenuGrid" class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2"></div>
+              <div class="flex flex-col sm:flex-row gap-2"><div class="flex gap-2 flex-1"><input id="restMenuSearch" class="rest-input flex-1" placeholder="🔎 Search food items..."><button type="button" id="restMenuToggle" class="shrink-0 px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 font-black text-xs active:scale-[0.98]">🍔 Menu</button></div><div id="restCategories" class="hidden flex gap-1 overflow-x-auto pb-1"></div></div>
+              <div id="restMenuGrid" class="hidden grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2"></div>
             </div>
           </div>
           <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 h-fit lg:sticky lg:top-0">
             <div class="flex items-center justify-between border-b border-slate-100 pb-2 mb-2"><div><h4 class="font-black text-slate-800">Current Order</h4><p id="restDraftNo" class="text-[10px] text-slate-400">New order</p></div><button id="restClearCart" class="text-xs font-bold text-red-600">Clear</button></div>
             <div id="restCart" class="space-y-2 max-h-[38vh] overflow-y-auto"></div>
-            <div class="border-t border-slate-200 mt-3 pt-3 space-y-1.5 text-xs"><div class="flex justify-between"><span>Subtotal</span><b id="restSubtotal">₹0.00</b></div><div class="flex justify-between"><span>Discount</span><input id="restDiscount" class="rest-mini" type="number" min="0" step="0.01" value="0"></div><div class="flex justify-between"><span>GST / Tax</span><b id="restTax">₹0.00</b></div><div class="flex justify-between text-base border-t pt-2"><b>Grand Total</b><b id="restGrandTotal" class="brand-text">₹0.00</b></div></div>
-            <button id="restSendKitchen" class="w-full mt-3 bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-black text-base shadow-lg">🔥 SEND TO KITCHEN</button>
-            <p class="text-[10px] text-center text-slate-400 mt-2">Order is saved and appears in the existing KDS immediately.</p>
+            <div class="border-t border-slate-200 mt-3 pt-3 space-y-2 text-xs">
+              <div class="flex justify-between"><span>Subtotal</span><b id="restSubtotal">₹0.00</b></div>
+              <div class="flex justify-between items-center"><span>Discount</span><input id="restDiscount" class="rest-mini" type="number" min="0" step="0.01" value="0"></div>
+              <div class="flex items-center justify-between gap-2"><span>GST / Tax</span><select id="restGstMode" class="rest-mini" aria-label="Restaurant GST mode"><option value="item">Item-wise GST</option><option value="0">0%</option><option value="5">5%</option><option value="12">12%</option><option value="18">18%</option><option value="28">28%</option><option value="custom">Custom</option></select></div>
+              <div id="restCustomGstWrap" class="hidden flex items-center justify-between gap-2"><span class="text-slate-500">Custom GST %</span><input id="restCustomGst" class="rest-mini" type="number" min="0" max="100" step="0.01" value="5" placeholder="GST %"></div>
+              <div class="flex justify-between"><span>GST / Tax Amount</span><b id="restTax">₹0.00</b></div>
+              <div class="flex justify-between text-base border-t pt-2"><b>Grand Total</b><b id="restGrandTotal" class="brand-text">₹0.00</b></div>
+              <div class="flex justify-between items-center gap-2 pt-2 border-t border-dashed border-slate-200">
+                <span class="text-amber-700 font-bold">💵 Cash Paid (Split)</span>
+                <input id="restCashSplit" type="number" min="0" step="0.01" inputmode="decimal" value="0" placeholder="0.00" class="rest-mini border-amber-300 bg-amber-50 font-bold text-amber-800">
+              </div>
+              <div id="restChangeRow" class="hidden flex justify-between items-center bg-emerald-50 border border-emerald-200 rounded-xl px-2.5 py-2 text-xs font-bold text-emerald-800">
+                <span>🔄 Change to Return</span><b id="restChangeAmount">₹0.00</b>
+              </div>
+              <div class="flex justify-between items-center bg-slate-50 rounded-xl px-2.5 py-2 text-xs font-bold">
+                <span class="text-slate-500">📲 Remaining UPI</span><b id="restRemainingUpi" class="brand-text">₹0.00</b>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
+              <button id="restPaidToggle" type="button" aria-pressed="false" class="w-full bg-slate-100 text-slate-700 border border-slate-200 py-4 rounded-2xl font-black text-sm sm:text-base shadow-sm active:scale-[0.99]">💳 PAID</button>
+              <button id="restSendKitchen" class="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-black text-sm sm:text-base shadow-lg active:scale-[0.99]">🔥 SEND TO KITCHEN</button>
+              <button id="restGenerateQr" type="button" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-black text-sm sm:text-base shadow-lg active:scale-[0.99]">📲 GENERATE QR</button>
+            </div>
+            <p class="text-[10px] text-center text-slate-400 mt-2">Send the order to the existing KDS or generate a UPI QR for the current cart total.</p>
           </div>
         </div>
       </section>
       <section id="restaurantOrdersTab" class="restaurant-panel hidden max-w-7xl mx-auto space-y-3">
         <div class="bg-white p-3 rounded-2xl border border-slate-200 grid sm:grid-cols-6 gap-2"><input id="restOrderSearch" class="rest-input sm:col-span-2" placeholder="Search order / customer"><input id="restOrderDate" type="date" class="rest-input"><select id="restOrderTableFilter" class="rest-input"><option value="">All Tables</option></select><select id="restOrderStatus" class="rest-input"><option value="">All Kitchen Status</option><option>pending</option><option>accepted</option><option>preparing</option><option>ready</option><option>completed</option></select><button id="restRefreshOrders" class="brand-bg text-white rounded-xl text-xs font-bold">Refresh</button></div>
+        <div class="text-[10px] text-slate-400 text-center">Press and hold any order card for 5 seconds to cancel it.</div>
         <div id="restOrdersList" class="space-y-2"></div>
       </section>
+      <section id="restaurantCancelledTab" class="restaurant-panel hidden max-w-7xl mx-auto space-y-3">
+        <div class="bg-white p-4 rounded-2xl border border-red-100">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div><h4 class="font-black text-red-700">❌ Cancelled Orders</h4><p class="text-[10px] text-slate-500">Orders cancelled by holding the order card for 5 seconds.</p></div>
+            <div class="text-right"><span class="block text-[10px] text-slate-400 uppercase font-bold">Cancelled Amount</span><b id="restCancelledTotal" class="text-red-600">-₹0.00</b></div>
+          </div>
+        </div>
+        <div id="restCancelledList" class="space-y-2"></div>
+      </section>
       <section id="restaurantMenuTab" class="restaurant-panel hidden max-w-7xl mx-auto grid lg:grid-cols-[360px_1fr] gap-4">
-        <div class="bg-white rounded-2xl border border-slate-200 p-4 space-y-2"><h4 class="font-black">Add / Edit Food Item</h4><input id="menuEditId" type="hidden"><input id="menuName" class="rest-input" placeholder="Food item name"><input id="menuPrice" class="rest-input" type="number" min="0" step="0.01" placeholder="Price"><select id="menuCategory" class="rest-input"><option>Snacks</option><option>Starters</option><option>Main Course</option><option>Rice</option><option>Biryani</option><option>Beverages</option><option>Desserts</option><option>Other</option></select><input id="menuIcon" class="rest-input" placeholder="Emoji / icon (e.g. 🍔)"><input id="menuGst" class="rest-input" type="number" min="0" step="0.1" value="5" placeholder="GST %"><textarea id="menuPrep" class="rest-input min-h-20" placeholder="Preparation notes"></textarea><label class="flex items-center gap-2 text-xs font-bold"><input id="menuAvailable" type="checkbox" checked> Available at counter</label><div class="grid grid-cols-2 gap-2"><button id="menuSave" class="brand-bg text-white py-2.5 rounded-xl font-bold text-xs">Save Item</button><button id="menuReset" class="bg-slate-100 text-slate-700 py-2.5 rounded-xl font-bold text-xs">Reset</button></div></div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 space-y-2"><h4 class="font-black">Add / Edit Food Item</h4><input id="menuEditId" type="hidden"><input id="menuName" class="rest-input" placeholder="Food item name"><input id="menuPrice" class="rest-input" type="number" min="0" step="0.01" placeholder="Price"><select id="menuCategory" class="rest-input"><option>Snacks</option><option>Starters</option><option>Main Course</option><option>Rice</option><option>Biryani</option><option>Beverages</option><option>Desserts</option><option value="__CUSTOM__">＋ Custom Category</option></select><div id="customCategoryBox" class="hidden bg-slate-50 border border-slate-200 rounded-xl p-2 space-y-2"><input id="customCategoryName" class="rest-input" placeholder="Type your food category, e.g. South Indian"><div class="grid grid-cols-2 gap-2"><button type="button" id="addCustomCategoryBtn" class="brand-bg text-white py-2 rounded-lg text-[10px] font-black">Add Category</button><button type="button" id="cancelCustomCategoryBtn" class="bg-white border py-2 rounded-lg text-[10px] font-black">Cancel</button></div></div><div class="mt-2 pt-2 border-t border-slate-200"><div class="text-[10px] font-black text-slate-500 uppercase mb-1">Custom Categories</div><div id="customCategoryList" class="space-y-1"></div></div>
+<div id="customCategoryDeleteConfirm" class="hidden mt-2 bg-red-50 border border-red-200 rounded-xl p-3 space-y-2"><div class="text-[10px] font-black text-red-700">Delete <span id="customCategoryDeleteName"></span>?</div><div class="text-[9px] text-red-600">This category can only be deleted when no food item is using it.</div><div class="grid grid-cols-2 gap-2"><button type="button" id="customCategoryDeleteYes" class="bg-red-600 text-white py-2 rounded-lg text-[10px] font-black">Delete</button><button type="button" id="customCategoryDeleteNo" class="bg-white border border-slate-200 py-2 rounded-lg text-[10px] font-black">Cancel</button></div></div><input id="menuIcon" class="rest-input" placeholder="Emoji / icon (e.g. 🍔)"><input id="menuGst" class="rest-input" type="number" min="0" step="0.1" value="5" placeholder="GST %"><textarea id="menuPrep" class="rest-input min-h-20" placeholder="Preparation notes"></textarea><label class="flex items-center gap-2 text-xs font-bold"><input id="menuAvailable" type="checkbox" checked> Available at counter</label><div class="grid grid-cols-2 gap-2"><button id="menuSave" class="brand-bg text-white py-2.5 rounded-xl font-bold text-xs">Save Item</button><button id="menuReset" class="bg-slate-100 text-slate-700 py-2.5 rounded-xl font-bold text-xs">Reset</button></div></div>
         <div class="bg-white rounded-2xl border border-slate-200 p-4"><div class="flex justify-between items-center mb-3"><h4 class="font-black">Menu Items</h4><input id="menuSearch" class="rest-input max-w-xs" placeholder="Search menu"></div><div id="menuList" class="grid sm:grid-cols-2 xl:grid-cols-3 gap-2"></div></div>
       </section>
       <section id="restaurantTablesTab" class="restaurant-panel hidden max-w-5xl mx-auto space-y-4"><div class="bg-white p-4 rounded-2xl border border-slate-200"><div class="flex justify-between items-center"><div><h4 class="font-black">Table Layout</h4><p class="text-xs text-slate-500">Available → Occupied → Billing → Available after payment</p></div><button id="addTableBtn" class="brand-bg text-white px-3 py-2 rounded-xl text-xs font-bold">+ Add Table</button></div><div id="restTablesGrid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 mt-4"></div></div></section>
+    </div>
+    <!-- Restaurant-only payment QR. It stays inside the Restaurant POS overlay. -->
+    <div id="restaurantQrOverlay" class="absolute inset-0 bg-slate-950/80 backdrop-blur-md z-[90] hidden items-center justify-center p-3 sm:p-4">
+      <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden flex flex-col items-center p-4 sm:p-6 space-y-3 max-h-[94vh]">
+        <div class="flex justify-between items-center w-full border-b border-slate-100 pb-2.5">
+          <div><h3 class="font-extrabold text-base sm:text-lg brand-text">📲 Restaurant Payment QR</h3><p id="restaurantQrAmount" class="text-xs text-slate-500 mt-0.5">Amount: ₹0.00</p></div>
+          <button type="button" id="restaurantQrClose" class="text-slate-400 hover:text-slate-600 p-2 rounded-lg hover:bg-slate-100">✕</button>
+        </div>
+        <div class="bg-white p-2 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-center w-full overflow-hidden">
+          <canvas id="restaurantQrCanvas" width="800" height="760" class="w-full max-h-[62vh] object-contain"></canvas>
+        </div>
+        <div class="grid grid-cols-2 gap-2 w-full">
+          <button id="restaurantQrDownload" type="button" class="bg-emerald-600 text-white py-3 rounded-xl font-bold text-xs">⬇️ Download QR</button>
+          <button id="restaurantQrPrint" type="button" class="bg-slate-800 text-white py-3 rounded-xl font-bold text-xs">🖨️ Print QR</button>
+        </div>
+        <div class="grid grid-cols-2 gap-2 w-full">
+          <button id="restaurantInvoiceBtn" type="button" class="bg-violet-600 text-white py-3 rounded-xl font-bold text-xs">🧾 Invoice</button>
+          <button id="restaurantInvoiceWhatsAppBtn" type="button" class="bg-green-600 text-white py-3 rounded-xl font-bold text-xs">💬 WhatsApp</button>
+        </div>
+        <p class="text-[10px] text-center text-slate-400">Invoice uses the current Restaurant POS cart total.</p>
+      </div>
+    </div>
+    <div id="restaurantInvoiceOverlay" class="absolute inset-0 bg-slate-950/80 backdrop-blur-md z-[120] hidden items-center justify-center p-3 sm:p-4">
+      <div class="bg-white w-full max-w-2xl max-h-[94vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+        <div class="brand-gradient text-white p-4 flex items-center justify-between shrink-0">
+          <div><h3 class="font-extrabold text-base">🧾 Restaurant Invoice</h3><p id="restaurantInvoiceMeta" class="text-[10px] text-white/75 mt-1"></p></div>
+          <button type="button" id="restaurantInvoiceClose" class="bg-white/10 px-3 py-2 rounded-xl text-xs font-bold">Close ✕</button>
+        </div>
+        <div id="restaurantInvoiceBody" class="p-4 overflow-y-auto grow bg-slate-50"></div>
+        <div class="p-3 border-t bg-white grid grid-cols-2 sm:grid-cols-3 gap-2 shrink-0">
+          <button id="restaurantInvoicePrint" type="button" class="bg-slate-800 text-white py-3 rounded-xl text-xs font-bold">🖨️ Print Invoice</button>
+          <button id="restaurantInvoiceWhatsApp" type="button" class="bg-green-600 text-white py-3 rounded-xl text-xs font-bold">💬 Send WhatsApp</button>
+          <button id="restaurantInvoiceClose2" type="button" class="bg-slate-100 text-slate-700 py-3 rounded-xl text-xs font-bold col-span-2 sm:col-span-1">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- In-app Cancel Order Confirmation (no browser popup) -->
+  <div id="restaurantCancelConfirmOverlay" class="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-[130] hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden">
+      <div class="bg-red-600 text-white px-5 py-4">
+        <h3 class="font-black text-base">Cancel Order?</h3>
+        <p class="text-xs text-red-100 mt-1">This order will move to Cancelled Orders as a negative amount.</p>
+      </div>
+      <div class="p-5 space-y-3">
+        <div id="restaurantCancelConfirmDetails" class="bg-slate-50 rounded-2xl p-4 text-sm"></div>
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" id="restaurantCancelNo" class="bg-slate-100 text-slate-700 py-3 rounded-xl font-bold text-xs">Keep Order</button>
+          <button type="button" id="restaurantCancelYes" class="bg-red-600 text-white py-3 rounded-xl font-bold text-xs">Yes, Cancel</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1089,6 +1184,40 @@
   </div>
 
 
+  <!-- IN-APP MODAL: Invoice Management -->
+  <div id="invoiceAppOverlay" class="fixed inset-0 bg-slate-900/80 z-[118] hidden items-center justify-center p-2 sm:p-5">
+    <div class="bg-slate-100 w-full max-w-5xl max-h-[95dvh] rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+      <div class="brand-gradient text-white p-4 flex items-center justify-between shrink-0">
+        <div><h3 class="font-extrabold text-base sm:text-lg">🧾 Invoice Management</h3><p class="text-[10px] text-white/75 mt-1">Restaurant bills & Bike Service invoices</p></div>
+        <button type="button" id="closeInvoiceAppBtn" class="bg-white/10 hover:bg-white/20 px-3 py-2 rounded-xl text-xs font-bold">Close ✕</button>
+      </div>
+      <div class="p-3 sm:p-5 overflow-y-auto grow">
+        <div class="flex gap-2 mb-4 overflow-x-auto">
+          <button id="invoiceTabRestaurant" class="px-4 py-2.5 rounded-xl text-xs font-extrabold brand-bg text-white whitespace-nowrap">Restaurant Invoices</button>
+          <button id="invoiceTabBike" class="px-4 py-2.5 rounded-xl text-xs font-extrabold bg-white border border-slate-200 text-slate-700 whitespace-nowrap">Bike Service Invoices</button>
+        </div>
+        <div id="invoiceRestaurantPanel"></div>
+        <div id="invoiceBikePanel" class="hidden"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IN-APP MODAL: Invoice Preview -->
+  <div id="invoicePreviewOverlay" class="fixed inset-0 bg-slate-900/80 z-[125] hidden items-center justify-center p-2 sm:p-5">
+    <div class="bg-white w-full max-w-2xl max-h-[95dvh] rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+      <div class="p-3 sm:p-4 border-b flex items-center justify-between shrink-0">
+        <div><h3 id="invoicePreviewTitle" class="font-extrabold text-sm sm:text-base">Invoice</h3><p id="invoicePreviewMeta" class="text-[10px] text-slate-400"></p></div>
+        <button type="button" id="closeInvoicePreviewBtn" class="bg-slate-100 px-3 py-2 rounded-xl text-xs font-bold">Close ✕</button>
+      </div>
+      <div id="invoicePreviewBody" class="p-4 sm:p-6 overflow-y-auto grow"></div>
+      <div class="p-3 border-t flex flex-wrap gap-2 justify-end shrink-0">
+        <button id="invoicePreviewPrintBtn" class="bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold">🖨️ Print</button>
+        <button id="invoicePreviewPdfBtn" class="bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-xs font-bold">⬇️ Download PDF</button>
+        <button id="invoicePreviewCloseBtn2" class="bg-slate-100 px-4 py-2.5 rounded-xl text-xs font-bold">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- FULL-SCREEN MODAL: BIKE SERVICE MANAGEMENT -->
   <div id="bikeServiceModalOverlay" class="fixed inset-0 bg-slate-900 z-[70] hidden flex flex-col h-full w-full overflow-hidden">
     <div class="brand-gradient p-4 sm:p-5 text-white flex items-center justify-between shrink-0 shadow-lg bike-no-print">
@@ -1105,34 +1234,37 @@
         <div id="bikeServiceToast" class="hidden fixed top-5 right-5 z-[120] max-w-sm px-4 py-3 rounded-xl shadow-xl text-xs font-bold"></div>
 
         <div class="grid grid-cols-2 md:grid-cols-6 gap-2.5">
-          <div class="bg-white p-3 rounded-2xl border border-slate-200"><div class="text-[10px] font-bold text-slate-500 uppercase">Bikes in Service</div><div id="bsTotal" class="text-2xl font-black brand-text">0</div></div>
-          <div class="bg-white p-3 rounded-2xl border border-slate-200"><div class="text-[10px] font-bold text-slate-500 uppercase">Work in Progress</div><div id="bsProgress" class="text-2xl font-black text-violet-600">0</div></div>
-          <div class="bg-white p-3 rounded-2xl border border-slate-200"><div class="text-[10px] font-bold text-slate-500 uppercase">Ready</div><div id="bsReady" class="text-2xl font-black text-emerald-600">0</div></div>
-          <div class="bg-white p-3 rounded-2xl border border-slate-200"><div class="text-[10px] font-bold text-slate-500 uppercase">Delivered</div><div id="bsDelivered" class="text-2xl font-black text-slate-600">0</div></div>
-          <div class="bg-white p-3 rounded-2xl border border-slate-200"><div class="text-[10px] font-bold text-slate-500 uppercase">Today's Revenue</div><div id="bsRevenue" class="text-2xl font-black text-emerald-600">₹0</div></div>
-          <div class="bg-white p-3 rounded-2xl border border-slate-200"><div class="text-[10px] font-bold text-slate-500 uppercase">Pending Payments</div><div id="bsPending" class="text-2xl font-black text-red-600">₹0</div></div>
+          <div class="bs-simple-card"><div class="text-[10px] font-bold text-slate-500">ACTIVE BIKES</div><div id="bsTotal" class="text-2xl font-black brand-text">0</div></div>
+          <div class="bs-simple-card"><div class="text-[10px] font-bold text-slate-500">WORKING</div><div id="bsProgress" class="text-2xl font-black text-violet-600">0</div></div>
+          <div class="bs-simple-card"><div class="text-[10px] font-bold text-slate-500">READY</div><div id="bsReady" class="text-2xl font-black text-emerald-600">0</div></div>
+          <div class="bs-simple-card"><div class="text-[10px] font-bold text-slate-500">DELIVERED</div><div id="bsDelivered" class="text-2xl font-black text-slate-600">0</div></div>
+          <div class="bs-simple-card"><div class="text-[10px] font-bold text-slate-500">PAID TODAY</div><div id="bsRevenue" class="text-2xl font-black text-emerald-600">₹0</div></div>
+          <div class="bs-simple-card"><div class="text-[10px] font-bold text-slate-500">BALANCE DUE</div><div id="bsPending" class="text-2xl font-black text-red-600">₹0</div></div>
         </div>
 
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3 bike-no-print">
-          <div class="flex flex-col lg:flex-row gap-2">
-            <input id="bsSearch" type="search" placeholder="Search customer, phone, bike number, job card..." class="flex-1 px-3 py-2.5 border border-slate-300 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-purple-600">
-            <select id="bsStatusFilter" class="px-3 py-2.5 border border-slate-300 rounded-xl text-xs font-bold"><option value="">All Statuses</option><option>Received</option><option>Inspection</option><option>Work in Progress</option><option>Waiting for Parts</option><option>Ready for Delivery</option><option>Delivered</option></select>
-            <input id="bsFromDate" type="date" class="px-3 py-2.5 border border-slate-300 rounded-xl text-xs font-bold">
-            <input id="bsToDate" type="date" class="px-3 py-2.5 border border-slate-300 rounded-xl text-xs font-bold">
-            <button id="bsAddJobBtn" class="brand-bg text-white px-4 py-2.5 rounded-xl text-xs font-extrabold">+ New Job Card</button>
+        <div class="bs-simple-card bike-no-print">
+          <div class="font-extrabold text-sm mb-3">Service Process</div>
+          <div class="flex gap-2 overflow-x-auto pb-1">
+            <div class="bs-step">1️⃣ Received</div><div class="bs-step">2️⃣ Inspection</div><div class="bs-step">3️⃣ Work</div><div class="bs-step">4️⃣ Parts</div><div class="bs-step">5️⃣ Ready</div><div class="bs-step">6️⃣ Delivered</div>
+          </div>
+          <div class="mt-3 text-xs text-slate-500">Simple rule: <b>Receive → Check → Repair → Ready → Deliver</b></div>
+        </div>
+
+        <div class="bs-simple-card bike-no-print space-y-3">
+          <div class="flex flex-col sm:flex-row gap-2">
+            <input id="bsSearch" type="search" placeholder="🔎 Search customer, phone, bike or job card" class="flex-1 px-3 py-3 border border-slate-300 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-purple-600">
+            <button id="bsAddJobBtn" class="brand-bg text-white px-5 py-3 rounded-xl text-xs font-extrabold">🏍️ New Service</button>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <select id="bsStatusFilter" class="px-3 py-3 border border-slate-300 rounded-xl text-xs font-bold"><option value="">All Service Jobs</option><option>Received</option><option>Inspection</option><option>Work in Progress</option><option>Waiting for Parts</option><option>Ready for Delivery</option><option>Delivered</option></select>
+            <input id="bsFromDate" type="date" class="px-3 py-3 border border-slate-300 rounded-xl text-xs font-bold">
+            <input id="bsToDate" type="date" class="px-3 py-3 border border-slate-300 rounded-xl text-xs font-bold">
           </div>
         </div>
 
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-          <div class="p-4 border-b border-slate-200 flex items-center justify-between"><h4 class="font-extrabold text-sm">Service Jobs</h4><span id="bsJobCount" class="text-[10px] font-bold text-slate-400">0 jobs</span></div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-xs text-left">
-              <thead class="bg-slate-100 text-slate-600 uppercase text-[10px] font-bold"><tr>
-                <th class="p-3">Job Card</th><th class="p-3">Customer</th><th class="p-3">Bike</th><th class="p-3">Dates</th><th class="p-3">Status</th><th class="p-3 text-right">Invoice</th><th class="p-3 text-right">Actions</th>
-              </tr></thead>
-              <tbody id="bsJobsBody" class="divide-y divide-slate-100"></tbody>
-            </table>
-          </div>
+        <div class="bs-simple-card">
+          <div class="p-1 border-b border-slate-200 flex items-center justify-between mb-3"><div><h4 class="font-extrabold text-sm">Your Bikes</h4><p class="text-[10px] text-slate-400">Tap the next step when the work is finished.</p></div><span id="bsJobCount" class="text-[10px] font-bold text-slate-400">0 jobs</span></div>
+          <div id="bsJobsBody" class="space-y-3"></div>
         </div>
       </div>
     </div>
@@ -1141,12 +1273,12 @@
   <!-- JOB CARD EDITOR -->
   <div id="bsJobEditorOverlay" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-[90] hidden flex items-center justify-center p-3">
     <div class="bg-white w-full max-w-4xl max-h-[94vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col">
-      <div class="brand-gradient p-4 text-white flex justify-between items-center bike-no-print"><div><h3 id="bsJobEditorTitle" class="font-extrabold">New Job Card</h3><p class="text-[10px] text-white/70">Create or edit service job</p></div><button id="bsCloseEditor" class="px-3 py-2 bg-white/10 rounded-xl text-xs font-bold">Close ✕</button></div>
+      <div class="brand-gradient p-4 text-white flex justify-between items-center bike-no-print"><div><h3 id="bsJobEditorTitle" class="font-extrabold">New Job Card</h3><p class="text-[10px] text-white/70">Enter customer + bike details, then save</p></div><button id="bsCloseEditor" class="px-3 py-2 bg-white/10 rounded-xl text-xs font-bold">Close ✕</button></div>
       <div class="grow overflow-y-auto p-4 bg-slate-100">
         <form id="bsJobForm" class="space-y-3">
           <input type="hidden" id="bsJobId">
           <div class="bg-white p-4 rounded-2xl border space-y-3">
-            <h4 class="font-extrabold text-xs uppercase text-slate-500">Customer & Bike</h4>
+            <h4 class="font-extrabold text-xs uppercase text-slate-500">Step 1 • Customer & Bike</h4>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
               <input id="bsCustomerName" required placeholder="Customer name *" class="bsf">
               <input id="bsCustomerPhone" required inputmode="tel" placeholder="Phone number *" class="bsf">
@@ -1165,17 +1297,29 @@
             <textarea id="bsNotes" placeholder="Additional notes" class="bsf w-full min-h-20"></textarea>
           </div>
           <div class="bg-white p-4 rounded-2xl border">
-            <div class="flex justify-between items-center mb-3"><h4 class="font-extrabold text-xs uppercase text-slate-500">Job Card Charges</h4><button type="button" id="bsAddCharge" class="brand-bg text-white px-3 py-2 rounded-lg text-xs font-bold">+ Add Item</button></div>
+            <div class="flex justify-between items-center mb-3"><h4 class="font-extrabold text-xs uppercase text-slate-500">Step 2 • Parts & Service Charges</h4><button type="button" id="bsAddCharge" class="brand-bg text-white px-3 py-2 rounded-lg text-xs font-bold">+ Add Item</button></div>
             <div id="bsCharges"></div>
           </div>
           <div class="flex flex-wrap gap-2 bike-no-print">
-            <button type="submit" class="brand-bg text-white px-5 py-3 rounded-xl text-xs font-extrabold">Save Job Card</button>
+            <button type="submit" class="brand-bg text-white px-5 py-3 rounded-xl text-xs font-extrabold">Save Service</button>
             <button type="button" id="bsPrintJob" class="bg-slate-800 text-white px-5 py-3 rounded-xl text-xs font-extrabold">Print Job Card</button>
             <button type="button" id="bsPdfJob" class="bg-emerald-600 text-white px-5 py-3 rounded-xl text-xs font-extrabold">Download PDF</button>
             <button type="button" id="bsCreateInvoiceFromJob" class="bg-indigo-600 text-white px-5 py-3 rounded-xl text-xs font-extrabold">Create / Edit Invoice</button>
           </div>
         </form>
         <div id="bsJobPrintArea" class="hidden bike-service-print mt-4"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IN-APP CONFIRMATION -->
+  <div id="appConfirmOverlay" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-[140] hidden items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-5">
+      <div class="text-lg font-black text-slate-800" id="appConfirmTitle">Confirm</div>
+      <div class="text-sm text-slate-500 mt-2" id="appConfirmMessage"></div>
+      <div class="flex gap-2 mt-5">
+        <button id="appConfirmNo" type="button" class="flex-1 bg-slate-100 text-slate-700 py-3 rounded-xl font-bold text-sm">Keep</button>
+        <button id="appConfirmYes" type="button" class="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold text-sm">Delete</button>
       </div>
     </div>
   </div>
@@ -1204,6 +1348,7 @@
             <button id="bsSaveInvoice" class="brand-bg text-white px-5 py-3 rounded-xl text-xs font-extrabold">Save Invoice</button>
             <button id="bsPrintInvoice" class="bg-slate-800 text-white px-5 py-3 rounded-xl text-xs font-extrabold">Print Invoice</button>
             <button id="bsPdfInvoice" class="bg-emerald-600 text-white px-5 py-3 rounded-xl text-xs font-extrabold">Download PDF</button>
+            <button id="bsInvoiceQr" class="bg-blue-600 text-white px-5 py-3 rounded-xl text-xs font-extrabold">📲 Generate QR</button>
           </div>
         </div>
         <div id="bsInvoicePrintArea" class="hidden bike-service-print mt-4"></div>
@@ -1325,7 +1470,7 @@
         <div class="text-white/60 text-xs font-mono px-2">⠿ </div>
       </button>
 
-      <!-- 6. Kitchen Display System -->
+      <!-- 7. Kitchen Display System -->
       <button type="button" id="gridKdsBtn" class="reorder-btn group flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-red-600 to-rose-800 text-white shadow-lg shadow-red-500/20 hover:scale-[1.01] active:scale-[0.99] transition duration-200 text-left relative overflow-hidden w-full cursor-grab active:cursor-grabbing">
         <div class="flex items-center">
           <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center mr-4 shrink-0">
@@ -3181,16 +3326,27 @@
     $('bsJobCount').textContent=filtered.length+' job'+(filtered.length===1?'':'s');
     $('bsJobsBody').innerHTML=filtered.length?filtered.map(j=>{
       const inv=invoiceByJob(j.id);
-      return `<tr><td class="p-3 font-mono font-black brand-text">${esc(j.jobCardNo)}<span class="block text-[10px] text-slate-400">${esc(j.serviceDate)}</span></td>
-      <td class="p-3 font-bold">${esc(j.customerName)}<span class="block text-[10px] text-slate-400">${esc(j.phone)}</span></td>
-      <td class="p-3 font-bold">${esc(j.bikeNumber)}<span class="block text-[10px] text-slate-400">${esc(j.bikeBrand)}</span></td>
-      <td class="p-3 text-[10px]">${esc(j.serviceDate)} → ${esc(j.deliveryDate)}</td>
-      <td class="p-3"><select onchange="window.bsUpdateStatus('${j.id}',this.value)" class="px-2 py-1 rounded-full text-[10px] font-bold ${statusClass(j.status)}">${statuses.map(s=>`<option ${s===j.status?'selected':''}>${s}</option>`).join('')}</select></td>
-      <td class="p-3 text-right font-mono font-bold">${inv?money(inv.grandTotal):'—'}${inv&&inv.balanceDue>0?`<span class="block text-[10px] text-red-600">Due ${money(inv.balanceDue)}</span>`:''}</td>
-      <td class="p-3 text-right whitespace-nowrap"><button onclick="window.bsEditJob('${j.id}')" class="text-indigo-600 font-bold mr-2">Edit</button><button onclick="window.bsOpenInvoice('${j.id}')" class="text-emerald-600 font-bold mr-2">Invoice</button><button onclick="window.bsDeleteJob('${j.id}')" class="text-red-600 font-bold">Delete</button></td></tr>`
-    }).join(''):`<tr><td colspan="7" class="p-10 text-center text-slate-400 italic">No service jobs found.</td></tr>`;
+      const idx=statuses.indexOf(j.status);
+      const next=idx<statuses.length-1?statuses[idx+1]:null;
+      const cls=statusClass(j.status);
+      return `<div class="bs-job-card">
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0"><div class="font-black text-sm">🏍️ ${esc(j.bikeNumber)}</div><div class="font-bold text-xs text-slate-700 mt-1">${esc(j.customerName)}</div><div class="text-[10px] text-slate-400 mt-1">${esc(j.phone)} • ${esc(j.bikeBrand)}</div></div>
+          <div class="text-right"><div class="font-mono font-black text-xs brand-text">${esc(j.jobCardNo)}</div><div class="text-[10px] text-slate-400">Due ${esc(j.deliveryDate)}</div></div>
+        </div>
+        <div class="mt-3 flex flex-wrap items-center gap-2"><span class="px-3 py-1.5 rounded-full text-[10px] font-extrabold ${cls}">${esc(j.status)}</span><span class="text-[10px] text-slate-400">Service: ${esc(j.serviceDate)}</span></div>
+        ${j.complaint?`<div class="mt-3 bg-slate-50 rounded-xl p-3 text-xs"><b>Customer says:</b> ${esc(j.complaint)}</div>`:''}
+        <div class="bs-job-actions mt-3">
+          ${next?`<button onclick="window.bsUpdateStatus('${j.id}','${next}')" class="brand-bg text-white px-3 py-2 rounded-xl text-[10px] font-extrabold">➡️ ${esc(next)}</button>`:`<button class="bg-slate-200 text-slate-600 px-3 py-2 rounded-xl text-[10px] font-extrabold" disabled>✅ Completed</button>`}
+          <button onclick="window.bsEditJob('${j.id}')" class="bg-indigo-50 text-indigo-700 px-3 py-2 rounded-xl text-[10px] font-extrabold">✏️ Edit</button>
+          <button onclick="window.bsOpenInvoice('${j.id}')" class="bg-emerald-50 text-emerald-700 px-3 py-2 rounded-xl text-[10px] font-extrabold">🧾 Bill</button>
+          <button onclick="window.bsDeleteJob('${j.id}')" class="bg-red-50 text-red-700 px-3 py-2 rounded-xl text-[10px] font-extrabold">🗑️ Delete</button>
+        </div>
+        ${inv?`<div class="mt-3 pt-3 border-t text-[10px] flex justify-between"><span>Bill ${esc(inv.invoiceNo)} • ${esc(inv.paymentStatus)}</span><b>${money(inv.grandTotal)}${inv.balanceDue>0?` • Due ${money(inv.balanceDue)}`:''}</b></div>`:''}
+      </div>`
+    }).join(''):`<div class="py-12 text-center text-slate-400"><div class="text-4xl mb-2">🏍️</div><div class="font-bold text-sm">No bikes here yet</div><div class="text-xs mt-1">Tap “New Service” to add the first bike.</div></div>`;
   }
-  function resetJobForm(){
+    function resetJobForm(){
     $('bsJobForm').reset();$('bsJobId').value='';$('bsServiceDate').value=today();$('bsDeliveryDate').value=today();$('bsServiceStatus').value='Received';jobCharges=[];renderCharges();
   }
   function renderCharges(){
@@ -3246,12 +3402,14 @@
     save(BS_KEYS.invoices,invoices);payments=payments.filter(p=>p.invoiceId!==inv.id);payments.push({id:'PAY-'+Date.now(),invoiceId:inv.id,jobId:j.id,amount:c.paid,method:inv.paymentMethod,date:inv.date});save(BS_KEYS.payments,payments);renderBS();renderDashboard();toast('Invoice saved successfully.')
   });
   function prepareInvoicePrint(){const inv=invoices.find(x=>x.id===editingInvoiceId)||(()=>{const j=jobById($('bsInvoiceJobId').value);const c=invoiceCalc();return {invoiceNo:'DRAFT',date:$('bsInvoiceDate').value,items:invoiceItems,labour:Number($('bsLabourCharge').value)||0,discount:c.discount,gstPct:c.gstPct,gst:c.gst,subtotal:c.subtotal,grandTotal:c.total,paymentStatus:$('bsPaymentStatus').value,paymentMethod:$('bsPaymentMethod').value,amountPaid:c.paid,balanceDue:c.balance}})();const area=$('bsInvoicePrintArea');area.innerHTML=invoiceHtml(inv,jobById($('bsInvoiceJobId').value));return area}
+  $('bsInvoiceQr').addEventListener('click',async()=>{const j=jobById($('bsInvoiceJobId').value);if(!j){toast('Open a service invoice first.',false);return}const c=invoiceCalc();const amount=Math.max(0,c.balance);if(amount<=0){toast('No balance due for this invoice.',false);return}const merchant=(merchantNameInput?.value||'Merchant Store').trim()||'Merchant Store';const vpa=getVpa();if(!vpa||vpa==='yourvpa@upi'){toast('Please configure your UPI ID in the UPI section first.',false);return}try{const upiUri=`upi://pay?pa=${encodeURIComponent(vpa)}&pn=${encodeURIComponent(merchant)}&am=${amount.toFixed(2)}&cu=INR`;const qr=await generateQrCode(upiUri);const out=$('restaurantQrCanvas'),ctx=out.getContext('2d');const W=800,H=760;out.width=W;out.height=H;ctx.clearRect(0,0,W,H);ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);const primary=(themeMap[activeThemeKey]||themeMap['theme-purple']).primary;ctx.fillStyle=primary;ctx.fillRect(0,0,W,92);ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font="800 28px 'Plus Jakarta Sans',sans-serif";ctx.fillText('SCAN & PAY WITH ANY UPI APP',W/2,42);ctx.font="600 15px 'Plus Jakarta Sans',sans-serif";ctx.fillText('GPay • PhonePe • Paytm • BHIM',W/2,68);ctx.fillStyle='#0f172a';ctx.font="800 25px 'Plus Jakarta Sans',sans-serif";ctx.fillText(merchant,W/2,135);ctx.fillStyle=primary;ctx.font="700 15px 'JetBrains Mono',monospace";ctx.fillText(vpa,W/2,160);ctx.drawImage(qr,(W-440)/2,185,440,440);ctx.fillStyle='#10b981';ctx.font="900 30px 'JetBrains Mono',monospace";ctx.fillText(`PAY: ₹${amount.toFixed(2)}`,W/2,665);ctx.fillStyle='#334155';ctx.font="700 16px 'Plus Jakarta Sans',sans-serif";ctx.fillText(`Bike Service Invoice ${j.jobCardNo}`,W/2,700);ctx.fillStyle='#64748b';ctx.font="600 13px 'Plus Jakarta Sans',sans-serif";ctx.fillText('Scan the QR to pay the balance due',W/2,726);restaurantQrDataUrl=out.toDataURL('image/png');$('restaurantQrAmount').textContent=`Balance Due: ${money(amount)} • Bike Service`;toggleModal($('restaurantQrOverlay'),true)}catch(e){console.error(e);toast('Could not generate the payment QR.',false)}});
   $('bsPrintInvoice').addEventListener('click',()=>{const a=prepareInvoicePrint();const w=window.open('','_blank');w.document.write('<html><head><title>Invoice</title></head><body>'+a.innerHTML+'</body></html>');w.document.close();w.focus();setTimeout(()=>w.print(),300)})
   $('bsPdfInvoice').addEventListener('click',async()=>{const a=prepareInvoicePrint();const inv=invoices.find(x=>x.id===editingInvoiceId);await bsPdf(a,'Invoice-'+(inv?.invoiceNo||'Draft')+'.pdf')})
   $('bsCreateInvoiceFromJob').addEventListener('click',()=>{if(editingJobId)openInvoice(editingJobId)})
   $('bsSearch').addEventListener('input',renderBS);$('bsStatusFilter').addEventListener('change',renderBS);$('bsFromDate').addEventListener('change',renderBS);$('bsToDate').addEventListener('change',renderBS);
-  window.bsUpdateStatus=(id,status)=>{const j=jobById(id);if(j){j.status=status;j.updatedAt=new Date().toISOString();save(BS_KEYS.jobs,jobs);renderBS();toast('Service status updated.')}}
-  window.bsDeleteJob=id=>{const j=jobById(id);if(!j)return;if(!confirm(`Delete ${j.jobCardNo}? This will also delete its linked invoice and payment records.`))return;jobs=jobs.filter(x=>x.id!==id);invoices=invoices.filter(x=>x.jobId!==id);payments=payments.filter(x=>x.jobId!==id);save(BS_KEYS.jobs,jobs);save(BS_KEYS.invoices,invoices);save(BS_KEYS.payments,payments);renderBS();toast('Job card deleted.')}
+  window.bsUpdateStatus=(id,status)=>{const j=jobById(id);if(j){j.status=status;j.updatedAt=new Date().toISOString();save(BS_KEYS.jobs,jobs);renderBS();toast('Moved to '+status+'.')}}
+  function showAppConfirm(title,message,onYes){$('appConfirmTitle').textContent=title;$('appConfirmMessage').textContent=message;toggleModal($('appConfirmOverlay'),true);$('appConfirmYes').onclick=()=>{toggleModal($('appConfirmOverlay'),false);onYes&&onYes()};$('appConfirmNo').onclick=()=>toggleModal($('appConfirmOverlay'),false)}
+  window.bsDeleteJob=id=>{const j=jobById(id);if(!j)return;showAppConfirm('Delete Service?',`Delete ${j.jobCardNo}? This will also delete its linked invoice and payment records.`,()=>{jobs=jobs.filter(x=>x.id!==id);invoices=invoices.filter(x=>x.jobId!==id);payments=payments.filter(x=>x.jobId!==id);save(BS_KEYS.jobs,jobs);save(BS_KEYS.invoices,invoices);save(BS_KEYS.payments,payments);renderBS();toast('Job card deleted.')})}
   $('gridBikeServiceBtn').addEventListener('click',openBS);$('openBikeServiceDrawerBtn').addEventListener('click',openBS);$('closeBikeServiceBtn').addEventListener('click',closeBS);
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){toggleModal(invoiceOverlay,false);toggleModal(editor,false);toggleModal(overlay,false)}})
   window.bsServiceInit=()=>{customers=read(BS_KEYS.customers);bikes=read(BS_KEYS.bikes);jobs=read(BS_KEYS.jobs);invoices=read(BS_KEYS.invoices);payments=read(BS_KEYS.payments);renderBS()}
@@ -3262,9 +3420,9 @@
 <script>
 /* ================= RESTAURANT / FOOD COURT POS ================= */
 (function(){
-  const K={menu:'restaurantMenuItems',orders:'restaurantOrders',orderItems:'restaurantOrderItems',kitchen:'restaurantKitchenStatus',payments:'restaurantPayments',tables:'restaurantTables',seq:'restaurantOrderSeq'};
+  const K={menu:'restaurantMenuItems',orders:'restaurantOrders',orderItems:'restaurantOrderItems',kitchen:'restaurantKitchenStatus',payments:'restaurantPayments',tables:'restaurantTables',seq:'restaurantOrderSeq',customCategories:'restaurantCustomCategories'};
   const $=id=>document.getElementById(id), read=k=>{try{return JSON.parse(localStorage.getItem(k)||'[]')}catch(e){return[]}}, save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
-  let menu=read(K.menu), orders=read(K.orders), orderItems=read(K.orderItems), kitchen=read(K.kitchen), payments=read(K.payments), tables=read(K.tables), cart=[], activeCat='All', billOrderId=null;
+  let menu=read(K.menu), orders=read(K.orders), orderItems=read(K.orderItems), kitchen=read(K.kitchen), payments=read(K.payments), tables=read(K.tables), customCategories=read(K.customCategories), cart=[], activeCat='All', billOrderId=null, menuVisible=false;
   const money=n=>'₹'+Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}), today=()=>new Date().toISOString().slice(0,10);
   const esc=v=>String(v??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));
   function toast(msg,ok=true){let t=$('bikeServiceToast');if(t){t.textContent=msg;t.className='fixed top-5 right-5 z-[120] max-w-sm px-4 py-3 rounded-xl shadow-xl text-xs font-bold '+(ok?'bg-emerald-600 text-white':'bg-red-600 text-white');t.classList.remove('hidden');setTimeout(()=>t.classList.add('hidden'),2500)}else alert(msg)}
@@ -3284,52 +3442,252 @@
   function closeRest(){toggleModal($('restaurantModalOverlay'),false);toggleModal($('restaurantBillOverlay'),false)}
   $('gridRestaurantBtn').addEventListener('click',openRest);$('openRestaurantDrawerBtn').addEventListener('click',openRest);$('closeRestaurantBtn').addEventListener('click',closeRest);
   document.querySelectorAll('.restaurant-tab').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
-  function showTab(tab){document.querySelectorAll('.restaurant-panel').forEach(x=>x.classList.add('hidden'));$('restaurant'+tab[0].toUpperCase()+tab.slice(1)+'Tab').classList.remove('hidden');document.querySelectorAll('.restaurant-tab').forEach(b=>{b.classList.toggle('brand-bg',b.dataset.tab===tab);b.classList.toggle('text-white',b.dataset.tab===tab);b.classList.toggle('bg-slate-100',b.dataset.tab!==tab);b.classList.toggle('text-slate-700',b.dataset.tab!==tab)});if(tab==='orders')renderOrders();if(tab==='menu')renderMenuList();if(tab==='tables')renderTables()}
-  function categories(){const cats=['All',...new Set(menu.map(x=>x.category))];$('restCategories').innerHTML=cats.map(c=>`<button class="restaurant-chip px-3 py-2 rounded-xl text-[10px] font-black whitespace-nowrap ${activeCat===c?'brand-bg text-white':'bg-slate-100 text-slate-700'}" onclick="window.restCat('${esc(c)}')">${esc(c)}</button>`).join('')}
+  function showTab(tab){document.querySelectorAll('.restaurant-panel').forEach(x=>x.classList.add('hidden'));$('restaurant'+tab[0].toUpperCase()+tab.slice(1)+'Tab').classList.remove('hidden');document.querySelectorAll('.restaurant-tab').forEach(b=>{b.classList.toggle('brand-bg',b.dataset.tab===tab);b.classList.toggle('text-white',b.dataset.tab===tab);b.classList.toggle('bg-slate-100',b.dataset.tab!==tab);b.classList.toggle('text-slate-700',b.dataset.tab!==tab)});if(tab==='orders')renderOrders();if(tab==='cancelled')renderCancelledOrders();if(tab==='menu')renderMenuList();if(tab==='tables')renderTables()}
+  function allRestaurantCategories(){const base=['Snacks','Starters','Main Course','Rice','Biryani','Beverages','Desserts'];return [...new Set([...base,...customCategories,...menu.map(x=>x.category).filter(Boolean)])]}
+function renderCategorySelect(){const sel=$('menuCategory');if(!sel)return;const current=sel.value;sel.innerHTML=allRestaurantCategories().map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')+'<option value="__CUSTOM__">＋ Custom Category</option>';if(current&&allRestaurantCategories().includes(current))sel.value=current;renderCustomCategoryList()}
+function renderCustomCategoryList(){const box=$('customCategoryList');if(!box)return;box.innerHTML=customCategories.length?customCategories.map(c=>`<div class="flex items-center justify-between bg-white border rounded-lg px-2 py-1.5"><span class="text-[10px] font-bold">${esc(c)}</span><span class="flex gap-1"><button type="button" onclick="window.renameCustomCategory('${encodeURIComponent(c)}')" class="text-blue-600 text-[10px] font-bold">Edit</button><button type="button" onclick="window.deleteCustomCategory('${encodeURIComponent(c)}')" class="text-red-600 text-[10px] font-bold">Delete</button></span></div>`).join(''):'<div class="text-[10px] text-slate-400">No custom categories yet.</div>'}
+function showCustomCategoryBox(show=true){$('customCategoryBox')?.classList.toggle('hidden',!show);if(show)$('customCategoryName')?.focus()}
+let customEditingOld='';
+window.renameCustomCategory=function(encoded){const old=decodeURIComponent(encoded);customEditingOld=old;$('customCategoryName').value=old;$('addCustomCategoryBtn').textContent='Update Category';showCustomCategoryBox(true)}
+let customCategoryDeletePending='';
+window.deleteCustomCategory=function(encoded){const name=decodeURIComponent(encoded);if(menu.some(x=>x.category===name)){toast('Move or edit food items in this category before deleting it.',false);return}customCategoryDeletePending=name;$('customCategoryDeleteName').textContent=name;$('customCategoryDeleteConfirm').classList.remove('hidden')}
+function cancelCustomCategoryDelete(){$('customCategoryDeleteConfirm').classList.add('hidden');customCategoryDeletePending=''}
+function confirmCustomCategoryDelete(){const name=customCategoryDeletePending;if(!name)return;if(menu.some(x=>x.category===name)){toast('Move or edit food items in this category before deleting it.',false);cancelCustomCategoryDelete();return}customCategories=customCategories.filter(c=>c!==name);save(K.customCategories,customCategories);if(activeCat===name)activeCat='All';cancelCustomCategoryDelete();renderCategorySelect();renderMenuCounter();renderCounterMenu();renderMenuList();toast('Custom category deleted')}
+function categories(){const cats=['All',...allRestaurantCategories()];$('restCategories').innerHTML=cats.map(c=>`<button class="restaurant-chip px-3 py-2 rounded-xl text-[10px] font-black whitespace-nowrap ${activeCat===c?'brand-bg text-white':'bg-slate-100 text-slate-700'}" onclick="window.restCat('${esc(c)}')">${esc(c)}</button>`).join('')}
   window.restCat=c=>{activeCat=c;renderMenuCounter()};
-  function renderMenuCounter(){categories();const q=($('restMenuSearch').value||'').toLowerCase();const items=menu.filter(x=>x.available&&(activeCat==='All'||x.category===activeCat)&&(!q||x.name.toLowerCase().includes(q)));$('restMenuGrid').innerHTML=items.length?items.map(x=>`<button class="restaurant-item-card bg-white border border-slate-200 rounded-2xl p-3 text-left hover:border-orange-400 hover:shadow-md" onclick="window.restAdd('${x.id}')"><div class="text-3xl mb-1">${x.icon||'🍽️'}</div><b class="block text-xs text-slate-800">${esc(x.name)}</b><span class="text-[10px] text-slate-400">${esc(x.category)}</span><strong class="block mt-1 text-sm brand-text">${money(x.price)}</strong></button>`).join(''):'<div class="col-span-full p-8 text-center text-slate-400 text-xs">No available food items.</div>'}
+  function renderMenuCounter(){
+    const q=($('restMenuSearch').value||'').toLowerCase().trim();
+    const showMenu=menuVisible||!!q;
+    $('restCategories').classList.toggle('hidden',!showMenu);
+    $('restMenuGrid').classList.toggle('hidden',!showMenu);
+    const toggle=$('restMenuToggle');
+    if(toggle){
+      toggle.textContent=showMenu?'✕ Close Menu':'🍔 Menu';
+      toggle.className='shrink-0 px-4 py-2.5 rounded-xl border font-black text-xs active:scale-[0.98] '+(showMenu?'brand-bg text-white border-transparent':'bg-slate-100 text-slate-700 border-slate-200');
+    }
+    if(!showMenu){$('restCategories').innerHTML='';$('restMenuGrid').innerHTML='';return}
+    categories();
+    const items=menu.filter(x=>x.available&&(activeCat==='All'||x.category===activeCat)&&(!q||x.name.toLowerCase().includes(q)));
+    $('restMenuGrid').innerHTML=items.length?items.map(x=>`<button class="restaurant-item-card bg-white border border-slate-200 rounded-2xl p-3 text-left hover:border-orange-400 hover:shadow-md" onclick="window.restAdd('${x.id}')"><div class="text-3xl mb-1">${x.icon||'🍽️'}</div><b class="block text-xs text-slate-800">${esc(x.name)}</b><span class="text-[10px] text-slate-400">${esc(x.category)}</span><strong class="block mt-1 text-sm brand-text">${money(x.price)}</strong></button>`).join(''):'<div class="col-span-full p-8 text-center text-slate-400 text-xs">No available food items.</div>';
+  }
   window.restAdd=id=>{const m=menu.find(x=>x.id===id);if(!m||!m.available)return;const f=cart.find(x=>x.menuId===id);if(f)f.qty++;else cart.push({menuId:id,name:m.name,price:Number(m.price)||0,qty:1,gst:Number(m.gst)||0,prep:m.prep||''});renderCart()};
   window.restQty=(i,d)=>{if(!cart[i])return;cart[i].qty+=d;if(cart[i].qty<=0)cart.splice(i,1);renderCart()};window.restRemove=i=>{cart.splice(i,1);renderCart()};
-  function calc(){let sub=0,tax=0;cart.forEach(x=>{const a=x.price*x.qty;sub+=a;tax+=a*(Number(x.gst)||0)/100});const disc=Math.min(sub,Math.max(0,Number($('restDiscount').value)||0));return{sub,disc,tax,total:Math.max(0,sub-disc+tax)}}
-  function renderCart(){const c=calc();$('restCart').innerHTML=cart.length?cart.map((x,i)=>`<div class="flex gap-2 items-center bg-slate-50 rounded-xl p-2"><div class="grow"><b class="text-xs">${esc(x.name)}</b><span class="block text-[10px] text-slate-500">${money(x.price)} × ${x.qty}</span></div><div class="flex items-center gap-1"><button onclick="restQty(${i},-1)" class="w-7 h-7 rounded-lg bg-white border font-black">−</button><b class="text-xs w-5 text-center">${x.qty}</b><button onclick="restQty(${i},1)" class="w-7 h-7 rounded-lg bg-white border font-black">+</button></div><b class="text-xs w-20 text-right">${money(x.price*x.qty)}</b><button onclick="restRemove(${i})" class="text-red-500 font-bold">×</button></div>`).join(''):'<div class="p-8 text-center text-slate-400 text-xs">Tap food items to build the order.</div>';$('restSubtotal').textContent=money(c.sub);$('restTax').textContent=money(c.tax);$('restGrandTotal').textContent=money(c.total)}
-  $('restMenuSearch').addEventListener('input',renderMenuCounter);$('restDiscount').addEventListener('input',renderCart);$('restClearCart').addEventListener('click',()=>{cart=[];$('restDiscount').value=0;renderCart()});$('restOrderType').addEventListener('change',()=>{$('restTableWrap').classList.toggle('hidden',$('restOrderType').value!=='Dine-In')});
+  function calc(){
+    let sub=0,itemTax=0;
+    cart.forEach(x=>{const a=x.price*x.qty;sub+=a;itemTax+=a*(Number(x.gst)||0)/100});
+    const disc=Math.min(sub,Math.max(0,Number($('restDiscount').value)||0));
+    const mode=$('restGstMode').value;
+    let tax=itemTax;
+    let gstRate=null;
+    if(mode!=='item'){
+      gstRate=mode==='custom'?Math.max(0,Math.min(100,Number($('restCustomGst').value)||0)):Number(mode)||0;
+      tax=Math.max(0,(sub-disc)*gstRate/100);
+    }
+    const total=Math.max(0,sub-disc+tax);
+    const cashPaid=Math.max(0,Math.min(total,Number($('restCashSplit').value)||0));
+    const rawRemaining=total-cashPaid;
+    const changeReturn=Math.max(0,-rawRemaining);
+    const remainingUpi=Math.max(0,rawRemaining);
+    return{sub,disc,tax,total,gstMode:mode,gstRate,cashPaid,remainingUpi,changeReturn};
+  }
+  function renderCart(){
+    const c=calc();
+    $('restCart').innerHTML=cart.length?cart.map((x,i)=>`<div class="flex gap-2 items-center bg-slate-50 rounded-xl p-2"><div class="grow"><b class="text-xs">${esc(x.name)}</b><span class="block text-[10px] text-slate-500">${money(x.price)} × ${x.qty}</span></div><div class="flex items-center gap-1"><button onclick="restQty(${i},-1)" class="w-7 h-7 rounded-lg bg-white border font-black">−</button><b class="text-xs w-5 text-center">${x.qty}</b><button onclick="restQty(${i},1)" class="w-7 h-7 rounded-lg bg-white border font-black">+</button></div><b class="text-xs w-20 text-right">${money(x.price*x.qty)}</b><button onclick="restRemove(${i})" class="text-red-500 font-bold">×</button></div>`).join(''):'<div class="p-8 text-center text-slate-400 text-xs">Tap food items to build the order.</div>';
+    $('restSubtotal').textContent=money(c.sub);
+    $('restTax').textContent=money(c.tax);
+    $('restGrandTotal').textContent=money(c.total);
+    $('restRemainingUpi').textContent=money(c.remainingUpi);
+    $('restChangeAmount').textContent=money(c.changeReturn);
+    $('restChangeRow').classList.toggle('hidden',c.changeReturn<=0);
+    $('restCustomGstWrap').classList.toggle('hidden',$('restGstMode').value!=='custom');
+  }
+  let restaurantPaidQuick=false;
+  function updateRestaurantPaidToggle(){const b=$('restPaidToggle');if(!b)return;b.setAttribute('aria-pressed',restaurantPaidQuick?'true':'false');b.className='w-full py-4 rounded-2xl font-black text-sm sm:text-base shadow-sm active:scale-[0.99] '+(restaurantPaidQuick?'bg-emerald-600 text-white border border-emerald-600':'bg-slate-100 text-slate-700 border border-slate-200');b.textContent=restaurantPaidQuick?'✅ PAID':'💳 PAID'}
+  $('restPaidToggle').addEventListener('click',()=>{restaurantPaidQuick=!restaurantPaidQuick;updateRestaurantPaidToggle()});
+  $('restMenuToggle').addEventListener('click',()=>{menuVisible=!menuVisible;renderMenuCounter()});$('restMenuSearch').addEventListener('input',renderMenuCounter);$('restDiscount').addEventListener('input',renderCart);$('restGstMode').addEventListener('change',renderCart);$('restCustomGst').addEventListener('input',renderCart);$('restCashSplit').addEventListener('input',()=>{restaurantPaidQuick=false;updateRestaurantPaidToggle();renderCart()});$('restClearCart').addEventListener('click',()=>{cart=[];restaurantPaidQuick=false;$('restDiscount').value=0;$('restGstMode').value='item';$('restCustomGst').value=5;$('restCashSplit').value=0;updateRestaurantPaidToggle();renderCart()});$('restOrderType').addEventListener('change',()=>{$('restTableWrap').classList.toggle('hidden',$('restOrderType').value!=='Dine-In')});
+  updateRestaurantPaidToggle();
   function nextOrder(){let n=Number(localStorage.getItem(K.seq)||1024)+1;localStorage.setItem(K.seq,n);return '#'+n}
-  async function sendKitchen(){if(!cart.length){toast('Add at least one food item.',false);return}const type=$('restOrderType').value;const table=$('restTable').value;if(type==='Dine-In'&&!table){toast('Select a table for Dine-In.',false);return}const c=calc();const now=new Date();const order={id:'RO-'+Date.now(),orderNo:nextOrder(),date:today(),timestamp:now.getTime(),time:now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),customer:$('restCustomer').value.trim()||'Walk-in',phone:$('restPhone').value.trim(),orderType:type,table:table||'',notes:$('restNotes').value.trim(),subtotal:c.sub,discount:c.disc,tax:c.tax,total:c.total,paymentStatus:'Unpaid',amountPaid:0,balance:c.total,kitchenStatus:'pending'};const items=cart.map(x=>({id:'OI-'+Date.now()+'-'+Math.random().toString(16).slice(2),orderId:order.id,menuId:x.menuId,name:x.name,qty:x.qty,rate:x.price,gst:x.gst,notes:x.prep||''}));orders.unshift(order);orderItems.push(...items);kitchen.unshift({orderId:order.id,status:'pending',updatedAt:now.toISOString()});save(K.orders,orders);save(K.orderItems,orderItems);save(K.kitchen,kitchen);if(table){const t=tables.find(x=>x.id===table);if(t){t.status='Occupied';save(K.tables,tables)}}
+  async function sendKitchen(){
+    if(!cart.length){toast('Add at least one food item.',false);return}
+    const type=$('restOrderType').value;
+    const table=$('restTable').value;
+    const c=calc();
+    const now=new Date();
+    const amountPaid=restaurantPaidQuick?c.total:c.cashPaid;
+    const balance=Math.max(0,c.total-amountPaid);
+    const paidNow=restaurantPaidQuick||balance<=0;
+    const paymentStatus=paidNow?'Paid':(amountPaid>0?'Partial':'Unpaid');
+    const order={id:'RO-'+Date.now(),orderNo:nextOrder(),date:today(),timestamp:now.getTime(),time:now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),customer:$('restCustomer').value.trim()||'Walk-in',phone:$('restPhone').value.trim(),orderType:type,table:table||'',notes:$('restNotes').value.trim(),subtotal:c.sub,discount:c.disc,tax:c.tax,total:c.total,paymentStatus,amountPaid,balance,kitchenStatus:'pending',cashPaid:c.cashPaid,remainingUpi:c.remainingUpi};
+    const items=cart.map(x=>({id:'OI-'+Date.now()+'-'+Math.random().toString(16).slice(2),orderId:order.id,menuId:x.menuId,name:x.name,qty:x.qty,rate:x.price,gst:x.gst,notes:x.prep||''}));
+    orders.unshift(order);orderItems.push(...items);kitchen.unshift({orderId:order.id,status:'pending',updatedAt:now.toISOString()});save(K.orders,orders);save(K.orderItems,orderItems);save(K.kitchen,kitchen);
+    if(table){const t=tables.find(x=>x.id===table);if(t){t.status=paidNow?'Available':'Occupied';save(K.tables,tables)}}
     const kdsOrder={id:order.id,orderNo:order.orderNo,customer:order.customer,phone:order.phone,items:items.map(i=>({name:i.name,qty:i.qty,notes:i.notes})),status:'pending',timestamp:order.timestamp,table:order.table,orderType:order.orderType,total:order.total,restaurant:true,notes:order.notes};
     if(currentUserUid&&window.firebaseDb){
       try {
-        const ref = await window.addDoc(window.collection(window.firebaseDb,'live_orders',currentUserUid,'orders'),kdsOrder);
-        kdsOrder.firestoreId = ref.id;
+        const ref=await window.addDoc(window.collection(window.firebaseDb,'live_orders',currentUserUid,'orders'),kdsOrder);
+        kdsOrder.firestoreId=ref.id;
       } catch(e) {
-        console.error('Restaurant order could not be sent to Firebase KDS:', e);
-        toast('Order saved locally, but kitchen cloud sync failed.', false);
+        console.error('Restaurant order could not be sent to Firebase KDS:',e);
+        toast('Order saved locally, but kitchen cloud sync failed.',false);
       }
     }
-    localLiveOrders.push(kdsOrder);localStorage.setItem('localLiveOrders',JSON.stringify(localLiveOrders));if(typeof renderKDS==='function')renderKDS(localLiveOrders);cart=[];$('restCustomer').value='';$('restPhone').value='';$('restNotes').value='';$('restDiscount').value=0;$('restTable').value='';renderCart();renderTables();renderDashboard();toast(`Order ${order.orderNo} Sent to Kitchen`);playKitchenAlert();
+    localLiveOrders.push(kdsOrder);localStorage.setItem('localLiveOrders',JSON.stringify(localLiveOrders));if(typeof renderKDS==='function')renderKDS(localLiveOrders);
+    cart=[];restaurantPaidQuick=false;$('restCustomer').value='';$('restPhone').value='';$('restNotes').value='';$('restDiscount').value=0;$('restGstMode').value='item';$('restCustomGst').value=5;$('restCashSplit').value=0;$('restTable').value='';updateRestaurantPaidToggle();renderCart();renderTables();renderDashboard();toast(`Order ${order.orderNo} Sent to Kitchen${paidNow?' • Paid':amountPaid>0?' • Cash '+money(amountPaid):''}`);playKitchenAlert();
   }
-  $('restSendKitchen').addEventListener('click',sendKitchen);function playKitchenAlert(){try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return;const a=new A(),o=a.createOscillator(),g=a.createGain();o.frequency.value=880;g.gain.value=.08;o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.18)}catch(e){}}
+  $('restSendKitchen').addEventListener('click',sendKitchen);
+  let restaurantQrDataUrl='';
+  async function generateRestaurantQr(){
+    if(!cart.length){toast('Add at least one food item before generating QR.',false);return}
+    const c=calc();
+    const amount=Number(c.remainingUpi)||0;
+    if(amount<=0){toast('No UPI balance remains. Cash split already covers the total.',false);return}
+    const merchant=(merchantNameInput.value||'Merchant Store').trim()||'Merchant Store';
+    const vpa=getVpa();
+    if(!vpa || vpa==='yourvpa@upi'){toast('Please configure your UPI ID in the UPI section first.',false);return}
+    try{
+      const upiUri=`upi://pay?pa=${encodeURIComponent(vpa)}&pn=${encodeURIComponent(merchant)}&am=${amount.toFixed(2)}&cu=INR`;
+      const qrSourceCanvas=await generateQrCode(upiUri);
+      const out=$('restaurantQrCanvas'),ctxR=out.getContext('2d');
+      const W=800,H=760;out.width=W;out.height=H;ctxR.clearRect(0,0,W,H);ctxR.fillStyle='#fff';ctxR.fillRect(0,0,W,H);
+      const primary=(themeMap[activeThemeKey]||themeMap['theme-purple']).primary;
+      ctxR.fillStyle=primary;ctxR.fillRect(0,0,W,92);ctxR.fillStyle='#fff';ctxR.textAlign='center';ctxR.textBaseline='alphabetic';ctxR.font="800 28px 'Plus Jakarta Sans',sans-serif";ctxR.fillText('SCAN & PAY WITH ANY UPI APP',W/2,42);ctxR.font="600 15px 'Plus Jakarta Sans',sans-serif";ctxR.globalAlpha=.9;ctxR.fillText('GPay • PhonePe • Paytm • BHIM',W/2,68);ctxR.globalAlpha=1;
+      ctxR.fillStyle='#0f172a';ctxR.font="800 25px 'Plus Jakarta Sans',sans-serif";ctxR.fillText(merchant,W/2,135);ctxR.fillStyle=primary;ctxR.font="700 15px 'JetBrains Mono',monospace";ctxR.fillText(vpa,W/2,160);
+      const q=440;ctxR.drawImage(qrSourceCanvas,(W-q)/2,185,q,q);ctxR.fillStyle='#10b981';ctxR.font="900 30px 'JetBrains Mono',monospace";ctxR.fillText(`PAY: ₹${amount.toFixed(2)}`,W/2,665);ctxR.fillStyle='#334155';ctxR.font="700 16px 'Plus Jakarta Sans',sans-serif";ctxR.fillText('Restaurant Order Payment',W/2,700);ctxR.fillStyle='#64748b';ctxR.font="600 13px 'Plus Jakarta Sans',sans-serif";ctxR.fillText('Scan the QR to pay the current cart total',W/2,726);
+      restaurantQrDataUrl=out.toDataURL('image/png');$('restaurantQrAmount').textContent=`Amount: ${money(amount)} • ${c.gstMode==='item'?'Item-wise GST':`GST ${c.gstRate}%`}`;toggleModal($('restaurantQrOverlay'),true);
+    }catch(e){console.error('Restaurant QR generation failed:',e);toast('Could not generate the payment QR.',false)}
+  }
+  $('restGenerateQr').addEventListener('click',generateRestaurantQr);
+  $('restaurantQrClose').addEventListener('click',()=>toggleModal($('restaurantQrOverlay'),false));
+  $('restaurantQrOverlay').addEventListener('click',e=>{if(e.target.id==='restaurantQrOverlay')toggleModal($('restaurantQrOverlay'),false)});
+  $('restaurantQrDownload').addEventListener('click',()=>{if(!restaurantQrDataUrl)return;const a=document.createElement('a');a.href=restaurantQrDataUrl;a.download=`restaurant-payment-${Date.now()}.png`;document.body.appendChild(a);a.click();a.remove()});
+  $('restaurantQrPrint').addEventListener('click',()=>{if(!restaurantQrDataUrl)return;const w=window.open('','_blank');if(!w){toast('Please allow popups to print the QR.',false);return}w.document.write(`<html><head><title>Restaurant Payment QR</title><style>body{font-family:Arial;text-align:center;padding:24px}img{max-width:90vw;width:600px}</style></head><body><h2>Restaurant Payment QR</h2><img src="${restaurantQrDataUrl}"><script>window.onload=()=>{window.print();setTimeout(()=>window.close(),300)}<\/script></body></html>`);w.document.close()});
+  function restaurantCartInvoice(){
+    const c=calc();
+    return {invoiceNo:'RINV-'+Date.now(),items:cart.map(x=>{const m=menu.find(y=>y.id===x.id)||x;return {name:m.name||x.name,qty:Number(x.qty)||0,rate:Number(x.price)||0,notes:x.notes||m.prep||''}}),subtotal:c.sub,discount:c.disc,gst:c.tax,total:c.total,gstRate:c.gstRate,gstMode:c.gstMode,cashPaid:c.cashPaid,remainingUpi:c.remainingUpi,paymentStatus:c.remainingUpi<=0?'Paid':(c.cashPaid>0?'Partial':'Unpaid'),customer:$('restCustomer').value.trim()||'Walk-in Customer',phone:$('restPhone').value.trim(),orderType:$('restOrderType').value||'Takeaway',table:$('restTable').value||'',notes:$('restNotes').value.trim(),date:new Date().toLocaleDateString('en-IN'),time:new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})};
+  }
+  function restaurantInvoiceHtml(inv){
+    const rows=inv.items.map(x=>`<tr><td style="padding:7px;border-bottom:1px solid #e5e7eb">${esc(x.name)}${x.notes?`<div style="font-size:10px;color:#64748b">${esc(x.notes)}</div>`:''}</td><td style="padding:7px;text-align:center;border-bottom:1px solid #e5e7eb">${x.qty}</td><td style="padding:7px;text-align:right;border-bottom:1px solid #e5e7eb">${money(x.rate)}</td><td style="padding:7px;text-align:right;border-bottom:1px solid #e5e7eb">${money(x.qty*x.rate)}</td></tr>`).join('');
+    return `<div style="font-family:Arial,sans-serif;background:#fff;color:#111827;padding:18px;max-width:700px;margin:auto"><div style="text-align:center;border-bottom:2px solid #111827;padding-bottom:10px"><h1 style="margin:0;font-size:22px">RESTAURANT INVOICE</h1><p style="margin:5px 0;color:#64748b;font-size:12px">${esc(merchantNameInput.value||'Restaurant')}</p></div><div style="display:flex;justify-content:space-between;gap:10px;margin:14px 0;font-size:12px"><div><b>Invoice:</b> ${esc(inv.invoiceNo)}<br><b>Date:</b> ${esc(inv.date)} ${esc(inv.time)}</div><div style="text-align:right"><b>Type:</b> ${esc(inv.orderType)}${inv.table?' • '+esc(inv.table):''}<br><b>Customer:</b> ${esc(inv.customer)}${inv.phone?' • '+esc(inv.phone):''}</div></div><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f1f5f9"><th style="padding:8px;text-align:left">Item</th><th style="padding:8px">Qty</th><th style="padding:8px;text-align:right">Rate</th><th style="padding:8px;text-align:right">Amount</th></tr></thead><tbody>${rows||'<tr><td colspan="4" style="padding:12px;text-align:center">No items</td></tr>'}</tbody></table><div style="margin:14px 0 0 auto;max-width:280px;font-size:12px"><div style="display:flex;justify-content:space-between"><span>Subtotal</span><b>${money(inv.subtotal)}</b></div><div style="display:flex;justify-content:space-between"><span>Discount</span><b>-${money(inv.discount)}</b></div><div style="display:flex;justify-content:space-between"><span>GST / Tax (${esc(inv.gstMode==='item'?'Item-wise':inv.gstRate+'%')})</span><b>${money(inv.gst)}</b></div><div style="display:flex;justify-content:space-between;border-top:2px solid #111827;margin-top:8px;padding-top:8px;font-size:16px"><b>Grand Total</b><b>${money(inv.total)}</b></div><div style="display:flex;justify-content:space-between;margin-top:6px"><span>Cash Paid</span><b>${money(inv.cashPaid||0)}</b></div><div style="display:flex;justify-content:space-between"><span>Remaining UPI</span><b>${money(inv.remainingUpi||0)}</b></div><div style="display:flex;justify-content:space-between"><span>Payment Status</span><b>${esc(inv.paymentStatus||'Unpaid')}</b></div></div>${inv.notes?`<p style="font-size:11px;margin-top:16px"><b>Notes:</b> ${esc(inv.notes)}</p>`:''}<p style="text-align:center;color:#64748b;font-size:10px;margin-top:28px">Thank you for your order.</p></div>`;
+  }
+  function openRestaurantInvoice(){if(!cart.length){toast('Add items to the cart before generating an invoice.',false);return}const inv=restaurantCartInvoice();$('restaurantInvoiceMeta').textContent=`${inv.invoiceNo} • ${inv.date} ${inv.time} • ${money(inv.total)}`;$('restaurantInvoiceBody').innerHTML=restaurantInvoiceHtml(inv);$('restaurantInvoiceOverlay').dataset.invoice=JSON.stringify(inv);toggleModal($('restaurantInvoiceOverlay'),true)}
+  function currentRestaurantInvoice(){try{return JSON.parse($('restaurantInvoiceOverlay').dataset.invoice||'null')}catch(e){return null}}
+  function printRestaurantInvoice(){const inv=currentRestaurantInvoice();if(!inv)return;const holder=document.createElement('div');holder.id='restaurantInvoicePrintHolder';holder.innerHTML=restaurantInvoiceHtml(inv);document.body.appendChild(holder);document.body.classList.add('restaurant-invoice-print-mode');window.print();document.body.classList.remove('restaurant-invoice-print-mode');holder.remove()}
+  function sendRestaurantInvoiceWhatsApp(){const inv=currentRestaurantInvoice();if(!inv)return;const lines=['*Restaurant Invoice*',`Invoice: ${inv.invoiceNo}`,`Date: ${inv.date} ${inv.time}`,`Customer: ${inv.customer}`,inv.phone?`Phone: ${inv.phone}`:'',`Order Type: ${inv.orderType}${inv.table?' • '+inv.table:''}`,'',...inv.items.map(x=>`${x.qty} x ${x.name} = ${money(x.qty*x.rate)}`),'',`Subtotal: ${money(inv.subtotal)}`,`Discount: -${money(inv.discount)}`,`GST/Tax: ${money(inv.gst)}`,`*Grand Total: ${money(inv.total)}*`,`Cash Paid: ${money(inv.cashPaid||0)}`,`Remaining UPI: ${money(inv.remainingUpi||0)}`,`Payment Status: ${inv.paymentStatus||'Unpaid'}`].filter(Boolean);const phone=inv.phone.replace(/\D/g,'');const base=phone?'https://wa.me/'+phone:'https://wa.me/';const url=base+'?text='+encodeURIComponent(lines.join('\n'));window.open(url,'_blank')}
+  $('restaurantInvoiceBtn').addEventListener('click',openRestaurantInvoice);
+  $('restaurantInvoiceWhatsAppBtn').addEventListener('click',()=>{openRestaurantInvoice();setTimeout(()=>{if($('restaurantInvoiceOverlay').classList.contains('hidden'))return;sendRestaurantInvoiceWhatsApp()},100)});
+  $('restaurantInvoiceClose').addEventListener('click',()=>toggleModal($('restaurantInvoiceOverlay'),false));$('restaurantInvoiceClose2').addEventListener('click',()=>toggleModal($('restaurantInvoiceOverlay'),false));$('restaurantInvoicePrint').addEventListener('click',printRestaurantInvoice);$('restaurantInvoiceWhatsApp').addEventListener('click',sendRestaurantInvoiceWhatsApp);$('restaurantInvoiceOverlay').addEventListener('click',e=>{if(e.target.id==='restaurantInvoiceOverlay')toggleModal($('restaurantInvoiceOverlay'),false)});
+
+
+  function playKitchenAlert(){try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return;const a=new A(),o=a.createOscillator(),g=a.createGain();o.frequency.value=880;g.gain.value=.08;o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.18)}catch(e){}}
   function renderDashboard(){const d=today();const ds=orders.filter(o=>o.date===d);$('restTodayOrders').textContent=ds.length;$('restTodaySales').textContent=money(ds.reduce((s,o)=>s+(Number(o.amountPaid)||0),0));$('restPendingKitchen').textContent=orders.filter(o=>['pending','accepted','preparing','ready'].includes(o.kitchenStatus)).length;$('restPendingPayments').textContent=money(orders.reduce((s,o)=>s+(Number(o.balance)||0),0))}
   function syncOrderFromKds(id,status){const o=orders.find(x=>x.id===id);if(!o)return;o.kitchenStatus=status;const ks=kitchen.find(x=>x.orderId===id);if(ks){ks.status=status;ks.updatedAt=new Date().toISOString()}else kitchen.unshift({orderId:id,status,updatedAt:new Date().toISOString()});save(K.orders,orders);save(K.kitchen,kitchen);if(status==='ready'){o.readyAt=new Date().toISOString()}if(status==='completed'){o.completedAt=new Date().toISOString()}renderDashboard();renderOrders()}
   window.restaurantKdsStatus=syncOrderFromKds;
-  function renderOrders(){const tfOld=$('restOrderTableFilter').value;$('restOrderTableFilter').innerHTML='<option value="">All Tables</option>'+tables.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('');$('restOrderTableFilter').value=tfOld;const q=($('restOrderSearch').value||'').toLowerCase(),d=$('restOrderDate').value,tf=$('restOrderTableFilter').value,st=$('restOrderStatus').value;const arr=orders.filter(o=>(!q||[o.orderNo,o.customer,o.orderType].join(' ').toLowerCase().includes(q))&&(!d||o.date===d)&&(!tf||o.table===tf)&&(!st||o.kitchenStatus===st));$('restOrdersList').innerHTML=arr.length?arr.map(o=>{const its=orderItems.filter(i=>i.orderId===o.id);return `<div class="bg-white rounded-2xl border border-slate-200 p-3"><div class="flex flex-col sm:flex-row sm:items-center gap-2 justify-between"><div><b class="text-sm">${esc(o.orderNo)}</b><span class="ml-2 text-[10px] px-2 py-1 rounded-full bg-slate-100 font-bold">${esc(o.kitchenStatus)}</span><div class="text-xs text-slate-500">${esc(o.time)} • ${esc(o.orderType)} ${o.table?'• '+esc(o.table):''} • ${esc(o.customer)}</div></div><div class="text-right"><b class="brand-text">${money(o.total)}</b><span class="block text-[10px] ${o.balance>0?'text-red-600':'text-emerald-600'}">${o.balance>0?'Due '+money(o.balance):'Paid'}</span></div></div><div class="mt-2 text-[11px] text-slate-600">${its.map(i=>`${i.qty}× ${esc(i.name)}`).join(' • ')}</div><div class="mt-2 flex gap-2">${o.kitchenStatus==='ready'||o.kitchenStatus==='completed'?`<button onclick="window.restOpenBill('${o.id}')" class="bg-emerald-600 text-white px-3 py-2 rounded-xl text-xs font-bold">Open Bill</button>`:''}<button onclick="window.restReorder('${o.id}')" class="bg-slate-100 px-3 py-2 rounded-xl text-xs font-bold">View</button></div></div>`}).join(''):'<div class="p-10 text-center text-slate-400 bg-white rounded-2xl">No matching orders.</div>'}
+  function getCancelledOrders(){return read('restaurantCancelledOrders')}
+  function saveCancelledOrders(list){save('restaurantCancelledOrders',list)}
+  function renderCancelledOrders(){
+    const list=getCancelledOrders();
+    const total=list.reduce((sum,o)=>sum-Math.abs(Number(o.total)||0),0);
+    $('restCancelledTotal').textContent='-₹'+Math.abs(total).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+    $('restCancelledList').innerHTML=list.length?list.map(o=>{
+      const its=orderItems.filter(i=>i.orderId===o.id);
+      return `<div class="bg-white rounded-2xl border border-red-100 p-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div><b class="text-sm">${esc(o.orderNo)}</b><span class="ml-2 text-[10px] px-2 py-1 rounded-full bg-red-100 text-red-700 font-bold">Cancelled</span>
+          <div class="text-xs text-slate-500">${esc(o.time||'')} • ${esc(o.orderType||'')} ${o.table?'• '+esc(o.table):''} • ${esc(o.customer||'Walk-in')}</div></div>
+          <div class="text-right"><b class="text-red-600">-${money(o.total)}</b><span class="block text-[10px] text-slate-400">${o.cancelledAt?new Date(o.cancelledAt).toLocaleString():''}</span></div>
+        </div>
+        <div class="mt-2 text-[11px] text-slate-600">${its.map(i=>`${i.qty}× ${esc(i.name)}`).join(' • ')}</div>
+      </div>`
+    }).join(''):'<div class="p-10 text-center text-slate-400 bg-white rounded-2xl">No cancelled orders.</div>';
+  }
+  let pendingRestaurantCancelResolve=null;
+  function requestRestaurantCancelConfirmation(o){
+    return new Promise(resolve=>{
+      pendingRestaurantCancelResolve=resolve;
+      $('restaurantCancelConfirmDetails').innerHTML=`<div class="font-black text-slate-800">${esc(o.orderNo)}</div><div class="text-xs text-slate-500 mt-1">${esc(o.customer||'Walk-in')} • ${esc(o.orderType||'')}</div><div class="text-xl font-black text-red-600 mt-3">-${money(o.total)}</div>`;
+      toggleModal($('restaurantCancelConfirmOverlay'),true);
+    });
+  }
+  function finishRestaurantCancelConfirmation(result){
+    const resolve=pendingRestaurantCancelResolve;
+    pendingRestaurantCancelResolve=null;
+    toggleModal($('restaurantCancelConfirmOverlay'),false);
+    if(resolve)resolve(result);
+  }
+  $('restaurantCancelNo').addEventListener('click',()=>finishRestaurantCancelConfirmation(false));
+  $('restaurantCancelYes').addEventListener('click',()=>finishRestaurantCancelConfirmation(true));
+  async function cancelRestaurantOrder(orderId){
+    const idx=orders.findIndex(o=>o.id===orderId);
+    if(idx<0)return;
+    const o=orders[idx];
+    if(!(await requestRestaurantCancelConfirmation(o)))return;
+    const cancelled={...o,status:'cancelled',kitchenStatus:'cancelled',cancelled:true,cancelledAt:new Date().toISOString(),cancelReason:'5-second hold'};
+    const cancelledList=getCancelledOrders();
+    cancelledList.unshift(cancelled);
+    saveCancelledOrders(cancelledList);
+    orders.splice(idx,1);
+    kitchen=kitchen.filter(k=>k.orderId!==orderId);
+    payments=payments.filter(p=>p.orderId!==orderId);
+    save(K.orders,orders);save(K.kitchen,kitchen);save(K.payments,payments);
+    if(o.table){const t=tables.find(x=>x.id===o.table);if(t){t.status='Available';save(K.tables,tables)}}
+    const live=localLiveOrders.find(x=>x.id===orderId||x.restaurantOrderId===orderId);
+    if(live&&currentUserUid&&window.firebaseDb&&live.firestoreId){
+      try{await window.updateDoc(window.doc(window.firebaseDb,'live_orders',currentUserUid,'orders',live.firestoreId),{status:'cancelled'});}catch(e){console.error('Could not sync cancellation to KDS:',e)}
+    }
+    localLiveOrders=localLiveOrders.filter(x=>x.id!==orderId&&x.restaurantOrderId!==orderId);
+    localStorage.setItem('localLiveOrders',JSON.stringify(localLiveOrders));
+    renderDashboard();renderOrders();renderCancelledOrders();renderTables();
+    if(typeof renderKDS==='function'&&!currentUserUid)renderKDS(localLiveOrders);
+    toast(`${o.orderNo} moved to Cancelled Orders`,true);
+  }
+  function attachOrderHoldHandlers(){
+    document.querySelectorAll('#restOrdersList [data-order-id]').forEach(card=>{
+      let timer=null,startX=0,startY=0,holding=false;
+      const clear=()=>{if(timer){clearTimeout(timer);timer=null}holding=false};
+      const start=e=>{
+        if(e.target.closest('button,a,input,select,textarea'))return;
+        const p=e.touches?e.touches[0]:e;
+        startX=p.clientX;startY=p.clientY;holding=true;
+        timer=setTimeout(()=>{timer=null;if(holding)cancelRestaurantOrder(card.dataset.orderId)},5000);
+      };
+      const move=e=>{if(!holding)return;const p=e.touches?e.touches[0]:e;if(Math.abs(p.clientX-startX)>12||Math.abs(p.clientY-startY)>12)clear()};
+      card.addEventListener('touchstart',start,{passive:true});card.addEventListener('touchmove',move,{passive:true});card.addEventListener('touchend',clear);card.addEventListener('touchcancel',clear);
+      card.addEventListener('pointerdown',start);card.addEventListener('pointermove',move);card.addEventListener('pointerup',clear);card.addEventListener('pointercancel',clear);card.addEventListener('pointerleave',clear);
+    });
+  }
+  function renderOrders(){
+    const tfOld=$('restOrderTableFilter').value;
+    $('restOrderTableFilter').innerHTML='<option value="">All Tables</option>'+tables.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('');
+    $('restOrderTableFilter').value=tfOld;
+    const q=($('restOrderSearch').value||'').toLowerCase(),d=$('restOrderDate').value,tf=$('restOrderTableFilter').value,st=$('restOrderStatus').value;
+    const arr=orders.filter(o=>(!q||[o.orderNo,o.customer,o.orderType].join(' ').toLowerCase().includes(q))&&(!d||o.date===d)&&(!tf||o.table===tf)&&(!st||o.kitchenStatus===st));
+    $('restOrdersList').innerHTML=arr.length?arr.map(o=>{const its=orderItems.filter(i=>i.orderId===o.id);return `<div data-order-id="${esc(o.id)}" class="bg-white rounded-2xl border border-slate-200 p-3 select-none touch-manipulation"><div class="flex flex-col sm:flex-row sm:items-center gap-2 justify-between"><div><b class="text-sm">${esc(o.orderNo)}</b><span class="ml-2 text-[10px] px-2 py-1 rounded-full bg-slate-100 font-bold">${esc(o.kitchenStatus)}</span><div class="text-xs text-slate-500">${esc(o.time)} • ${esc(o.orderType)} ${o.table?'• '+esc(o.table):''} • ${esc(o.customer)}</div></div><div class="text-right"><b class="brand-text">${money(o.total)}</b><span class="block text-[10px] ${o.balance>0?'text-red-600':'text-emerald-600'}">${o.balance>0?'Due '+money(o.balance):'Paid'}</span></div></div><div class="mt-2 text-[11px] text-slate-600">${its.map(i=>`${i.qty}× ${esc(i.name)}`).join(' • ')}</div><div class="mt-2 flex gap-2">${o.kitchenStatus==='ready'||o.kitchenStatus==='completed'?`<button onclick="window.restOpenBill('${o.id}')" class="bg-emerald-600 text-white px-3 py-2 rounded-xl text-xs font-bold">Open Bill</button>`:''}<button onclick="window.restReorder('${o.id}')" class="bg-slate-100 px-3 py-2 rounded-xl text-xs font-bold">View</button></div></div>`}).join(''):'<div class="p-10 text-center text-slate-400 bg-white rounded-2xl">No matching orders.</div>';
+    attachOrderHoldHandlers();
+  }
   window.restReorder=id=>{const o=orders.find(x=>x.id===id);if(!o)return;const its=orderItems.filter(i=>i.orderId===o.id);$('restViewOrderMeta').textContent=`${o.orderNo} • ${o.time} • ${o.orderType}${o.table?' • '+o.table:''}`;$('restViewContent').innerHTML=`<div class="space-y-4"><div class="grid grid-cols-2 gap-2 text-xs"><div class="bg-slate-50 rounded-xl p-3"><span class="text-slate-400 block text-[10px] font-bold uppercase">Customer</span><b>${esc(o.customer)}</b>${o.phone?`<span class="block text-slate-500 mt-1">${esc(o.phone)}</span>`:''}</div><div class="bg-slate-50 rounded-xl p-3"><span class="text-slate-400 block text-[10px] font-bold uppercase">Kitchen</span><b class="capitalize">${esc(o.kitchenStatus)}</b><span class="block mt-1 ${o.balance>0?'text-red-600':'text-emerald-600'}">${o.balance>0?'Due '+money(o.balance):'Paid'}</span></div></div><div class="border border-slate-200 rounded-2xl overflow-hidden"><div class="bg-slate-50 px-3 py-2 text-xs font-black">Ordered Items</div>${its.map(i=>`<div class="px-3 py-2 flex justify-between border-t border-slate-100 text-xs"><span><b>${i.qty}×</b> ${esc(i.name)}${i.notes?`<span class="block text-[10px] text-slate-400 mt-0.5">${esc(i.notes)}</span>`:''}</span><b>${money(i.qty*i.rate)}</b></div>`).join('')}</div><div class="bg-slate-50 rounded-2xl p-3 text-xs space-y-1"><div class="flex justify-between"><span>Subtotal</span><b>${money(o.subtotal)}</b></div><div class="flex justify-between"><span>Discount</span><b>-${money(o.discount)}</b></div><div class="flex justify-between"><span>GST / Tax</span><b>${money(o.tax)}</b></div><div class="border-t pt-2 mt-2 flex justify-between text-base"><b>Grand Total</b><b class="brand-text">${money(o.total)}</b></div></div>${o.notes?`<div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs"><b>Notes:</b> ${esc(o.notes)}</div>`:''}</div>`;const canBill=['ready','completed'].includes(o.kitchenStatus);$('restViewOpenBill').classList.toggle('hidden',!canBill);$('restViewOpenBill').onclick=()=>{toggleModal($('restaurantOrderViewOverlay'),false);openBill(o.id)};toggleModal($('restaurantOrderViewOverlay'),true)};
   function openBill(id){const o=orders.find(x=>x.id===id);if(!o)return;if(!['ready','completed'].includes(o.kitchenStatus)){toast('Bill can be opened after the order is Ready.',false);return}billOrderId=id;$('restBillOrderNo').textContent=`${o.orderNo} • ${o.customer} • ${o.orderType} ${o.table?'• '+o.table:''}`;$('restAmountPaid').value=o.amountPaid||0;$('restPaymentMethod').value=(payments.find(p=>p.orderId===id)?.method)||'Cash';$('restBillSummary').innerHTML=orderSummaryHtml(o);renderBillTotals();toggleModal($('restaurantBillOverlay'),true)}
   window.restOpenBill=openBill;
   function orderSummaryHtml(o){const its=orderItems.filter(i=>i.orderId===o.id);return `<div class="space-y-1">${its.map(i=>`<div class="flex justify-between"><span>${i.qty}× ${esc(i.name)}</span><b>${money(i.qty*i.rate)}</b></div>`).join('')}<div class="border-t mt-2 pt-2 flex justify-between"><span>Subtotal</span><b>${money(o.subtotal)}</b></div><div class="flex justify-between"><span>Discount</span><b>-${money(o.discount)}</b></div><div class="flex justify-between"><span>GST / Tax</span><b>${money(o.tax)}</b></div><div class="border-t mt-2 pt-2 flex justify-between text-base"><b>Grand Total</b><b class="brand-text">${money(o.total)}</b></div></div>`}
   function renderBillTotals(){const o=orders.find(x=>x.id===billOrderId);if(!o)return;const paid=Math.min(o.total,Math.max(0,Number($('restAmountPaid').value)||0)),bal=Math.max(0,o.total-paid);$('restPaymentTotals').innerHTML=`<div class="flex justify-between"><span>Grand Total</span><b>${money(o.total)}</b></div><div class="flex justify-between text-emerald-700"><span>Amount Paid</span><b>${money(paid)}</b></div><div class="flex justify-between ${bal?'text-red-600':'text-emerald-600'}"><span>Balance</span><b>${money(bal)}</b></div>`}
   $('restAmountPaid').addEventListener('input',renderBillTotals);$('restBillClose').addEventListener('click',()=>toggleModal($('restaurantBillOverlay'),false));$('restViewClose').addEventListener('click',()=>toggleModal($('restaurantOrderViewOverlay'),false));$('restViewCloseBottom').addEventListener('click',()=>toggleModal($('restaurantOrderViewOverlay'),false));$('restaurantOrderViewOverlay').addEventListener('click',e=>{if(e.target.id==='restaurantOrderViewOverlay')toggleModal($('restaurantOrderViewOverlay'),false)});
-  $('restSavePayment').addEventListener('click',()=>{const o=orders.find(x=>x.id===billOrderId);if(!o)return;const paid=Math.min(o.total,Math.max(0,Number($('restAmountPaid').value)||0)),bal=Math.max(0,o.total-paid);o.amountPaid=paid;o.balance=bal;o.paymentStatus=bal<=0?'Paid':paid>0?'Partial':'Unpaid';const pay={id:'RP-'+Date.now(),orderId:o.id,amount:paid,method:$('restPaymentMethod').value,date:today(),updatedAt:new Date().toISOString()};payments=payments.filter(p=>p.orderId!==o.id);payments.push(pay);save(K.orders,orders);save(K.payments,payments);if(o.table){const t=tables.find(x=>x.id===o.table);if(t)t.status=bal<=0?'Available after payment':'Billing';save(K.tables,tables)}renderDashboard();renderOrders();renderTables();renderBillTotals();toast(`${o.orderNo} payment saved`);});
+  $('restSavePayment').addEventListener('click',()=>{const o=orders.find(x=>x.id===billOrderId);if(!o)return;const paid=Math.min(o.total,Math.max(0,Number($('restAmountPaid').value)||0)),bal=Math.max(0,o.total-paid);o.amountPaid=paid;o.balance=bal;o.paymentStatus=bal<=0?'Paid':paid>0?'Partial':'Unpaid';const pay={id:'RP-'+Date.now(),orderId:o.id,amount:paid,method:$('restPaymentMethod').value,date:today(),updatedAt:new Date().toISOString()};payments=payments.filter(p=>p.orderId!==o.id);payments.push(pay);save(K.orders,orders);save(K.payments,payments);if(o.table){const t=tables.find(x=>x.id===o.table);if(t){t.status=bal<=0?'Available':'Billing';}save(K.tables,tables)}renderDashboard();renderOrders();renderTables();renderBillTotals();toast(`${o.orderNo} payment saved`);});
   function billHtml(o){return `<html><head><meta charset="utf-8"><title>${o.orderNo}</title><style>body{font-family:Arial;padding:20px;max-width:420px;margin:auto}h1{text-align:center}table{width:100%;border-collapse:collapse}td{padding:6px 0;border-bottom:1px solid #ddd}.r{text-align:right}</style></head><body><h1>RESTAURANT BILL</h1><p><b>${o.orderNo}</b><br>${o.date} ${o.time}<br>${esc(o.customer)} • ${esc(o.orderType)} ${o.table?'• '+esc(o.table):''}</p><table>${orderItems.filter(i=>i.orderId===o.id).map(i=>`<tr><td>${i.qty}× ${esc(i.name)}</td><td class="r">${money(i.qty*i.rate)}</td></tr>`).join('')}<tr><td>Subtotal</td><td class="r">${money(o.subtotal)}</td></tr><tr><td>Discount</td><td class="r">-${money(o.discount)}</td></tr><tr><td>GST/Tax</td><td class="r">${money(o.tax)}</td></tr><tr><td><b>Grand Total</b></td><td class="r"><b>${money(o.total)}</b></td></tr><tr><td>Paid</td><td class="r">${money(o.amountPaid)}</td></tr><tr><td>Balance</td><td class="r">${money(o.balance)}</td></tr></table><p style="text-align:center;margin-top:30px">Thank you!</p></body></html>`}
   $('restDownloadBill').addEventListener('click',()=>{const o=orders.find(x=>x.id===billOrderId);if(!o)return;const blob=new Blob([billHtml(o)],{type:'text/html'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${o.orderNo.replace(/[^a-z0-9_-]/gi,'')}-Receipt.html`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),500)});
   $('restPrintBill').addEventListener('click',()=>{const o=orders.find(x=>x.id===billOrderId);if(!o)return;const w=window.open('','_blank');w.document.write(billHtml(o));w.document.close();w.focus();setTimeout(()=>w.print(),250)});
   function renderMenuList(){const q=($('menuSearch').value||'').toLowerCase();const arr=menu.filter(x=>!q||x.name.toLowerCase().includes(q)||x.category.toLowerCase().includes(q));$('menuList').innerHTML=arr.map(x=>`<div class="border rounded-2xl p-3 ${x.available?'bg-white':'bg-slate-100 opacity-70'}"><div class="flex justify-between"><span class="text-2xl">${x.icon||'🍽️'}</span><span class="text-[10px] font-bold px-2 py-1 rounded-full ${x.available?'bg-emerald-100 text-emerald-700':'bg-red-100 text-red-700'}">${x.available?'Available':'Unavailable'}</span></div><b class="block text-sm mt-1">${esc(x.name)}</b><span class="text-[10px] text-slate-500">${esc(x.category)} • ${money(x.price)} • GST ${x.gst}%</span><p class="text-[10px] text-slate-400 mt-1">${esc(x.prep||'')}</p><div class="flex gap-2 mt-2"><button onclick="window.menuEdit('${x.id}')" class="bg-slate-100 px-2.5 py-1.5 rounded-lg text-[10px] font-bold">Edit</button><button onclick="window.menuToggle('${x.id}')" class="bg-amber-50 text-amber-700 px-2.5 py-1.5 rounded-lg text-[10px] font-bold">${x.available?'Disable':'Enable'}</button><button onclick="window.menuDelete('${x.id}')" class="bg-red-50 text-red-600 px-2.5 py-1.5 rounded-lg text-[10px] font-bold">Delete</button></div></div>`).join('')}
-  function resetMenuForm(){$('menuEditId').value='';$('menuName').value='';$('menuPrice').value='';$('menuCategory').value='Snacks';$('menuIcon').value='🍽️';$('menuGst').value=5;$('menuPrep').value='';$('menuAvailable').checked=true}
+  function resetMenuForm(){$('menuEditId').value='';$('menuName').value='';$('menuPrice').value='';renderCategorySelect(); $('menuCategory').value='Snacks';$('menuIcon').value='🍽️';$('menuGst').value=5;$('menuPrep').value='';$('menuAvailable').checked=true}
   $('menuReset').addEventListener('click',resetMenuForm);$('menuSearch').addEventListener('input',renderMenuList);
-  $('menuSave').addEventListener('click',()=>{const name=$('menuName').value.trim(),price=Number($('menuPrice').value)||0;if(!name||price<=0){toast('Enter food name and valid price.',false);return}let id=$('menuEditId').value,m=id?menu.find(x=>x.id===id):null;if(!m){m={id:'M-'+Date.now()};menu.push(m)}Object.assign(m,{name,price,category:$('menuCategory').value,icon:$('menuIcon').value.trim()||'🍽️',gst:Number($('menuGst').value)||0,prep:$('menuPrep').value.trim(),available:$('menuAvailable').checked});save(K.menu,menu);resetMenuForm();renderMenuList();renderMenuCounter();toast('Menu item saved')});
+  renderCategorySelect();
+$('menuCategory').addEventListener('change',e=>{if(e.target.value==='__CUSTOM__'){showCustomCategoryBox(true);e.target.value=customCategories[customCategories.length-1]||''}else showCustomCategoryBox(false)});
+$('addCustomCategoryBtn').addEventListener('click',()=>{const input=$('customCategoryName');const name=(input.value||'').trim();if(!name){toast('Type a category name first',false);return}if(customEditingOld){if(customCategories.some(c=>c!==customEditingOld&&c.toLowerCase()===name.toLowerCase())){toast('Category already exists',false);return}menu.forEach(x=>{if(x.category===customEditingOld)x.category=name});customCategories=customCategories.map(c=>c===customEditingOld?name:c);save(K.menu,menu);save(K.customCategories,customCategories);customEditingOld='';$('addCustomCategoryBtn').textContent='Add Category';renderCategorySelect();$('menuCategory').value=name;input.value='';showCustomCategoryBox(false);renderMenuCounter();renderCounterMenu();renderMenuList();toast('Custom category updated');return}if(allRestaurantCategories().some(c=>c.toLowerCase()===name.toLowerCase())){toast('Category already exists',false);return}customCategories.push(name);save(K.customCategories,customCategories);renderCategorySelect();$('menuCategory').value=name;input.value='';showCustomCategoryBox(false);renderMenuCounter();renderCounterMenu();renderMenuList();toast('Custom category added')});
+$('cancelCustomCategoryBtn').addEventListener('click',()=>{customEditingOld='';$('customCategoryName').value='';$('addCustomCategoryBtn').textContent='Add Category';showCustomCategoryBox(false);renderCategorySelect()});
+$('customCategoryDeleteYes').addEventListener('click',confirmCustomCategoryDelete);$('customCategoryDeleteNo').addEventListener('click',cancelCustomCategoryDelete);
+$('menuSave').addEventListener('click',()=>{const name=$('menuName').value.trim(),price=Number($('menuPrice').value)||0;if(!name||price<=0){toast('Enter food name and valid price.',false);return}let id=$('menuEditId').value,m=id?menu.find(x=>x.id===id):null;if(!m){m={id:'M-'+Date.now()};menu.push(m)}Object.assign(m,{name,price,category:$('menuCategory').value,icon:$('menuIcon').value.trim()||'🍽️',gst:Number($('menuGst').value)||0,prep:$('menuPrep').value.trim(),available:$('menuAvailable').checked});save(K.menu,menu);resetMenuForm();renderMenuList();renderMenuCounter();toast('Menu item saved')});
   window.menuEdit=id=>{const x=menu.find(m=>m.id===id);if(!x)return;$('menuEditId').value=x.id;$('menuName').value=x.name;$('menuPrice').value=x.price;$('menuCategory').value=x.category;$('menuIcon').value=x.icon||'🍽️';$('menuGst').value=x.gst||0;$('menuPrep').value=x.prep||'';$('menuAvailable').checked=!!x.available;showTab('menu')};window.menuToggle=id=>{const x=menu.find(m=>m.id===id);if(x){x.available=!x.available;save(K.menu,menu);renderMenuList();renderMenuCounter()}};window.menuDelete=id=>{if(!confirm('Delete this food item?'))return;menu=menu.filter(x=>x.id!==id);save(K.menu,menu);renderMenuList();renderMenuCounter()};
-  function renderTables(){$('restTable').innerHTML='<option value="">Select Table</option>'+tables.map(t=>`<option value="${t.id}">${esc(t.name)} — ${esc(t.status)}</option>`).join('');$('restTablesGrid').innerHTML=tables.map(t=>`<button onclick="window.restPickTable('${t.id}')" class="restaurant-table rounded-2xl border-2 p-3 text-left ${t.status==='Available'?'bg-emerald-50 border-emerald-200 text-emerald-800':t.status==='Occupied'?'bg-red-50 border-red-200 text-red-800':'bg-amber-50 border-amber-200 text-amber-800'}"><b class="block text-sm">${esc(t.name)}</b><span class="text-[10px] font-bold">${esc(t.status)}</span></button>`).join('')}
+  function reconcilePaidTables(){let changed=false;tables.forEach(t=>{const active=orders.some(o=>o.table===t.id && (Number(o.balance)||0)>0 && ['pending','accepted','preparing','ready','completed'].includes(o.kitchenStatus));const paid=orders.some(o=>o.table===t.id && (Number(o.balance)||0)<=0 && o.paymentStatus==='Paid');if(paid&&!active&&t.status!=='Available'){t.status='Available';changed=true}});if(changed)save(K.tables,tables)}
+  function renderTables(){reconcilePaidTables();$('restTable').innerHTML='<option value="">Select Table</option>'+tables.map(t=>`<option value="${t.id}">${esc(t.name)} — ${esc(t.status)}</option>`).join('');$('restTablesGrid').innerHTML=tables.map(t=>`<button onclick="window.restPickTable('${t.id}')" class="restaurant-table rounded-2xl border-2 p-3 text-left ${t.status==='Available'?'bg-emerald-50 border-emerald-200 text-emerald-800':t.status==='Occupied'?'bg-red-50 border-red-200 text-red-800':'bg-amber-50 border-amber-200 text-amber-800'}"><b class="block text-sm">${esc(t.name)}</b><span class="text-[10px] font-bold">${esc(t.status)}</span></button>`).join('')}
   window.restPickTable=id=>{$('restOrderType').value='Dine-In';$('restTableWrap').classList.remove('hidden');$('restTable').value=id;showTab('counter')};$('addTableBtn').addEventListener('click',()=>{const n=prompt('Enter table name','Table '+(tables.length+1));if(!n)return;tables.push({id:'T-'+Date.now(),name:n,status:'Available'});save(K.tables,tables);renderTables()});
-  function renderAll(){renderMenuCounter();renderCart();renderDashboard();renderTables();renderOrders();showTab('counter')}
+  function renderAll(){renderMenuCounter();renderCart();renderDashboard();renderTables();renderOrders();renderCancelledOrders();showTab('counter')}
   $('restRefreshOrders').addEventListener('click',renderOrders);$('restOrderSearch').addEventListener('input',renderOrders);$('restOrderDate').addEventListener('change',renderOrders);$('restOrderTableFilter').addEventListener('change',renderOrders);$('restOrderStatus').addEventListener('change',renderOrders);
   // Patch existing KDS workflow so restaurant orders stay linked to the existing screen.
   const oldUpdate=window.updateOrderStatus;
