@@ -105,183 +105,7 @@
 
     .rest-input{width:100%;padding:.65rem .75rem;border:1px solid #cbd5e1;border-radius:.75rem;font-size:.75rem;font-weight:600;outline:none;background:#f8fafc}.rest-input:focus{background:#fff;box-shadow:0 0 0 2px rgba(95,37,159,.15)}.rest-mini{width:92px;padding:.25rem .4rem;border:1px solid #cbd5e1;border-radius:.5rem;text-align:right;font-family:monospace;font-weight:700}
 
-
-    /* Mobile-first app sizing and touch optimization */
-    html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
-    body { min-width: 0 !important; }
-    *, *::before, *::after { box-sizing: border-box; }
-    button, input, select, textarea { max-width: 100%; }
-    button { touch-action: manipulation; }
-    img, svg, canvas { max-width: 100%; }
-
-    @media (max-width: 640px) {
-      body { font-size: 14px; padding-bottom: 12px !important; }
-      .max-w-6xl, .max-w-5xl, .max-w-4xl, .max-w-3xl, .max-w-2xl, .max-w-xl, .max-w-lg, .max-w-md, .max-w-sm {
-        max-width: 100% !important;
-      }
-      .p-8 { padding: 1rem !important; }
-      .p-7 { padding: .9rem !important; }
-      .p-6 { padding: .85rem !important; }
-      .p-5 { padding: .75rem !important; }
-      .p-4 { padding: .7rem !important; }
-      .px-8 { padding-left: 1rem !important; padding-right: 1rem !important; }
-      .px-6 { padding-left: .85rem !important; padding-right: .85rem !important; }
-      .py-8 { padding-top: 1rem !important; padding-bottom: 1rem !important; }
-      .gap-8 { gap: .85rem !important; }
-      .gap-6 { gap: .7rem !important; }
-      .gap-5 { gap: .65rem !important; }
-      .gap-4 { gap: .55rem !important; }
-      .rounded-3xl { border-radius: 1.15rem !important; }
-      .rounded-2xl { border-radius: .9rem !important; }
-
-      /* Keep the main app comfortably inside narrow phone screens. */
-      #buttonContainer { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: .6rem !important; }
-      #buttonContainer .reorder-btn { min-width: 0 !important; width: 100% !important; min-height: 72px; padding: .65rem !important; }
-      #buttonContainer .reorder-btn span { min-width: 0; overflow-wrap: anywhere; text-align: center; }
-
-      /* Full-screen modals feel like native mobile pages. */
-      [id$="ModalOverlay"], [id$="Modal"] {
-        max-width: 100vw;
-      }
-      .fixed.inset-0 { padding: .5rem !important; }
-      .fixed.inset-0 > div { max-height: calc(100dvh - 1rem); overflow-y: auto; -webkit-overflow-scrolling: touch; }
-
-      /* Restaurant POS: stack counter and cart instead of forcing horizontal overflow. */
-      #restaurantModal .grid, #restaurantModal .md\\:grid-cols-2,
-      #restaurantModal .lg\\:grid-cols-3 { grid-template-columns: minmax(0,1fr) !important; }
-      #restaurantModal .overflow-x-auto { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-      #restaurantModal table { min-width: 520px; }
-      #restaurantModal .restaurant-menu-grid { grid-template-columns: repeat(2, minmax(0,1fr)) !important; }
-      #restaurantModal .restaurant-table-grid { grid-template-columns: repeat(3, minmax(0,1fr)) !important; }
-
-      /* KDS cards remain one column on phones and buttons stay thumb-friendly. */
-      #kdsOrdersContainer { grid-template-columns: minmax(0,1fr) !important; }
-      #kdsOrdersContainer button, #restaurantModal button { min-height: 44px; }
-
-      /* Forms: prevent iOS/Android zoom and clipped controls. */
-      input, select, textarea { font-size: 16px !important; min-width: 0; }
-      input, select { min-height: 44px; }
-      textarea { min-height: 80px; }
-
-      /* Dashboard cards and action rows wrap cleanly. */
-      .grid { min-width: 0; }
-      .flex { min-width: 0; }
-      .flex-wrap { row-gap: .5rem; }
-      .overflow-hidden { min-width: 0; }
-      .truncate { max-width: 100%; }
-
-      /* Avoid fixed-width job card / invoice content overflowing a phone. */
-      #jobCardModal table, #invoiceModal table { width: 100%; min-width: 0 !important; table-layout: fixed; }
-      #jobCardModal th, #jobCardModal td, #invoiceModal th, #invoiceModal td { overflow-wrap: anywhere; word-break: break-word; }
-      #jobCardModal .overflow-x-auto, #invoiceModal .overflow-x-auto { overflow-x: auto; }
-
-      /* Printable documents retain normal paper layout; app UI remains mobile. */
-      .print-only { overflow: visible !important; }
-    }
-
-    /* ===== HARD MOBILE LAYOUT FIX FOR RESTAURANT POS =====
-       The restaurant overlay uses #restaurantModalOverlay (not #restaurantModal).
-       Keep every restaurant section inside the phone viewport and never let a
-       desktop grid create a horizontal page overflow. */
-    #restaurantModalOverlay, #restaurantModalOverlay * { min-width: 0; }
-    #restaurantModalOverlay { width: 100vw !important; max-width: 100vw !important; overflow: hidden !important; }
-    #restaurantModalOverlay > .grow { width: 100% !important; max-width: 100% !important; overflow-x: hidden !important; }
-    #restaurantModalOverlay .restaurant-panel { width: 100% !important; max-width: 100% !important; min-width: 0 !important; }
-    #restaurantModalOverlay .restaurant-tab { flex: 0 0 auto; }
-    #restaurantModalOverlay #restCategories { min-width: 0; max-width: 100%; }
-    #restaurantModalOverlay #restMenuGrid,
-    #restaurantModalOverlay #restTablesGrid,
-    #restaurantModalOverlay #menuList { min-width: 0 !important; width: 100% !important; }
-
-    @media (max-width: 1024px) {
-      #restaurantModalOverlay .restaurant-panel > .grid.lg\:grid-cols-\[1\.35fr_\.9fr\] {
-        grid-template-columns: minmax(0,1fr) !important;
-      }
-      #restaurantModalOverlay #restaurantCounterTab > .grid {
-        grid-template-columns: minmax(0,1fr) !important;
-      }
-      #restaurantModalOverlay #restMenuGrid {
-        grid-template-columns: repeat(2, minmax(0,1fr)) !important;
-      }
-      #restaurantModalOverlay #restaurantMenuTab {
-        grid-template-columns: minmax(0,1fr) !important;
-      }
-      #restaurantModalOverlay #restaurantTablesTab .flex {
-        flex-wrap: wrap;
-      }
-      #restaurantModalOverlay #restaurantTablesTab .flex > div {
-        min-width: 0;
-      }
-      #restaurantModalOverlay #restaurantTablesTab #addTableBtn {
-        width: 100%;
-      }
-    }
-
-    @media (max-width: 640px) {
-      #restaurantModalOverlay .bg-gradient-to-r {
-        padding: .8rem !important;
-      }
-      #restaurantModalOverlay .bg-gradient-to-r > div:first-child {
-        min-width: 0;
-      }
-      #restaurantModalOverlay .bg-gradient-to-r h3 {
-        font-size: 1rem !important;
-        line-height: 1.05 !important;
-      }
-      #restaurantModalOverlay .bg-gradient-to-r p {
-        font-size: .68rem !important;
-      }
-      #restaurantModalOverlay #closeRestaurantBtn {
-        flex: 0 0 auto;
-        min-height: 48px;
-        padding: .65rem .8rem !important;
-      }
-      #restaurantModalOverlay > .bg-white {
-        max-width: 100vw;
-      }
-      #restaurantModalOverlay .grow {
-        padding: .65rem !important;
-      }
-      #restaurantModalOverlay #restaurantCounterTab > .grid > .space-y-4,
-      #restaurantModalOverlay #restaurantCounterTab > .grid > .bg-white {
-        width: 100% !important;
-      }
-      #restaurantModalOverlay #restTableWrap {
-        grid-template-columns: minmax(0,1fr) !important;
-      }
-      #restaurantModalOverlay #restCategories {
-        overflow-x: auto;
-        flex-wrap: nowrap !important;
-        padding-bottom: .25rem;
-      }
-      #restaurantModalOverlay #restCategories button {
-        flex: 0 0 auto;
-        min-height: 42px;
-      }
-      #restaurantModalOverlay #restMenuGrid {
-        grid-template-columns: repeat(2, minmax(0,1fr)) !important;
-      }
-      #restaurantModalOverlay #restCart {
-        max-height: 32vh !important;
-      }
-      #restaurantModalOverlay #restSendKitchen {
-        min-height: 52px !important;
-      }
-      #restaurantModalOverlay #restaurantMenuTab .max-w-xs {
-        max-width: 100% !important;
-      }
-    }
-
-    @media (max-width: 390px) {
-      #buttonContainer { grid-template-columns: 1fr !important; }
-      #restaurantModal .restaurant-menu-grid { grid-template-columns: 1fr !important; }
-      #restaurantModal .restaurant-table-grid { grid-template-columns: repeat(2, minmax(0,1fr)) !important; }
-      .text-4xl { font-size: 1.65rem !important; }
-      .text-3xl { font-size: 1.45rem !important; }
-      .text-2xl { font-size: 1.25rem !important; }
-    }
-
-  </style>
+</style>
 <style id="bike-service-simple-ui">
 /* Simple Bike Service UI */
 .bs-simple-card{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:14px;box-shadow:0 2px 8px rgba(15,23,42,.05)}
@@ -291,6 +115,129 @@
 .bs-job-actions{display:flex;gap:7px;flex-wrap:wrap}
 @media(max-width:640px){.bs-step{min-width:110px}.bs-job-actions button{flex:1;min-width:88px}.bsf{font-size:16px!important}}
 </style>
+
+
+<style id="mobile-stable-layout">
+/* Stable mobile layout: targeted overrides only. Do not globally collapse every grid/flex row. */
+html,body{width:100%;max-width:100%;overflow-x:hidden!important;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+*,*:before,*:after{box-sizing:border-box}
+img,svg,video,canvas{max-width:100%;height:auto}
+button,input,select,textarea{max-width:100%;font:inherit;touch-action:manipulation}
+input,select,textarea{min-width:0}
+
+/* Full-screen modules: header stays fixed, content scrolls. */
+#restaurantModalOverlay,#kdsModalOverlay,#pharmacyModalOverlay,#bikeServiceModalOverlay,
+#upiConfigModalOverlay,#masterInventoryModalOverlay,#searchModalOverlay,#calcModalOverlay,#ledgerModalOverlay{
+  width:100vw!important;max-width:100vw!important;height:100dvh!important;max-height:100dvh!important;overflow:hidden!important;
+}
+#restaurantModalOverlay>.grow,#kdsModalOverlay>.grow,#pharmacyModalOverlay>.grow,#bikeServiceModalOverlay>.grow,
+#upiConfigModalOverlay>.grow,#masterInventoryModalOverlay>.grow,#searchModalOverlay>.grow,#calcModalOverlay>.grow,#ledgerModalOverlay>.grow{
+  min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;width:100%!important;
+}
+
+/* Drawer */
+#sideDrawer{width:min(86vw,320px)!important;max-width:320px!important}
+
+/* Home */
+@media(max-width:640px){
+  body{padding-bottom:max(8px,env(safe-area-inset-bottom))!important}
+  body>header,body>main,body>footer{width:100%!important;max-width:100%!important}
+  body>main{border-radius:20px!important;margin-top:-10px!important;padding:14px!important}
+  #buttonContainer{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+  #buttonContainer .reorder-btn{width:100%!important;min-width:0!important;min-height:76px!important;padding:10px 6px!important}
+  #buttonContainer .reorder-btn span{white-space:normal!important;overflow-wrap:anywhere!important;text-align:center!important}
+}
+@media(max-width:360px){#buttonContainer{grid-template-columns:1fr!important}}
+
+/* Generic centered popups */
+#authModalOverlay>div,#visibilityModalOverlay>div,#alertsModalOverlay>div,#addStockModalOverlay>div,
+#restaurantCancelConfirmOverlay>div,#restaurantBillOverlay>div,#restaurantOrderViewOverlay>div,
+#qrResultModal>div,#invoiceAppOverlay>div,#invoicePreviewOverlay>div,#bsJobEditorOverlay>div,#appConfirmOverlay>div,
+#bsInvoiceOverlay>div,#phMedicineFormOverlay>div,#phStockActionOverlay>div,#phDeleteConfirmOverlay>div,
+#phHistoryOverlay>div,#phScannerOverlay>div{
+  width:min(94vw,900px)!important;max-width:94vw!important;max-height:calc(100dvh - 24px)!important;overflow-y:auto!important;overflow-x:hidden!important;
+}
+
+/* Restaurant POS */
+#restaurantModalOverlay .restaurant-panel{width:100%!important;max-width:1200px!important;min-width:0!important;margin-left:auto!important;margin-right:auto!important}
+#restaurantModalOverlay #restaurantCounterTab>div{min-width:0!important}
+#restaurantModalOverlay #restMenuGrid{min-width:0!important;width:100%!important}
+#restaurantModalOverlay #restCart{min-width:0!important;overflow-y:auto!important}
+#restaurantModalOverlay #restCategories{max-width:100%!important;overflow-x:auto!important;flex-wrap:nowrap!important}
+#restaurantModalOverlay #restCategories button{flex:0 0 auto!important;white-space:nowrap!important}
+@media(max-width:900px){
+  #restaurantModalOverlay #restaurantCounterTab>div.grid{grid-template-columns:minmax(0,1fr)!important}
+  #restaurantModalOverlay #restaurantMenuTab{grid-template-columns:minmax(0,1fr)!important}
+}
+@media(max-width:640px){
+  #restaurantModalOverlay>.bg-gradient-to-r{padding:12px!important}
+  #restaurantModalOverlay>.bg-gradient-to-r h3{font-size:15px!important}
+  #restaurantModalOverlay>.bg-white.border-b{padding-left:8px!important;padding-right:8px!important}
+  #restaurantModalOverlay>.grow{padding:10px!important}
+  #restaurantModalOverlay #restaurantCounterTab>div.grid{grid-template-columns:1fr!important}
+  #restaurantModalOverlay #restaurantCounterTab .grid.grid-cols-2.sm\:grid-cols-4{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #restaurantModalOverlay #restTableWrap{grid-template-columns:1fr!important}
+  #restaurantModalOverlay #restMenuGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #restaurantModalOverlay #restCart{max-height:32vh!important}
+  #restaurantModalOverlay #restaurantCounterTab .grid.grid-cols-1.sm\:grid-cols-3{grid-template-columns:1fr!important}
+  #restaurantModalOverlay #restaurantMenuTab .grid{grid-template-columns:1fr!important}
+}
+@media(max-width:390px){#restaurantModalOverlay #restMenuGrid{grid-template-columns:1fr!important}}
+
+/* KDS */
+#kdsOrdersContainer{min-width:0!important;width:100%!important}
+@media(max-width:640px){#kdsOrdersContainer{grid-template-columns:1fr!important;gap:10px!important}}
+
+/* Pharmacy */
+#pharmacyModalOverlay .grow{min-height:0!important}
+#pharmacyModalOverlay .max-w-6xl{width:100%!important;max-width:1100px!important}
+#phMedicineList,#phSaleResults,#phSaleCart{min-width:0!important;overflow-x:hidden!important}
+#phSaleResults>*,#phMedicineList>*{min-width:0!important;overflow-wrap:anywhere!important}
+@media(max-width:640px){
+  #pharmacyModalOverlay>.brand-gradient{padding:12px!important}
+  #pharmacyModalOverlay>.grow{padding:10px!important}
+  #pharmacyModalOverlay .grid.grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-6{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #pharmacyModalOverlay .grid.grid-cols-2.sm\:grid-cols-4{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #pharmacyModalOverlay #phCounterOverlay .grid{grid-template-columns:1fr!important}
+  #phCounterOverlay>.grow{padding:10px!important}
+  #phCounterOverlay .flex.gap-2{min-width:0!important}
+  #phCounterOverlay #phSaleSearch{width:100%!important}
+  #phCounterOverlay #phSaleScan{flex:0 0 auto!important;width:auto!important}
+  #phCounterOverlay .max-w-6xl{width:100%!important}
+  #phCounterOverlay .grid.grid-cols-2{grid-template-columns:1fr!important}
+  #phCounterOverlay .grid.grid-cols-1.sm\:grid-cols-2{grid-template-columns:1fr!important}
+  #phSaleInvoiceOverlay>div,#phSalesExtraOverlay>div{max-width:94vw!important;max-height:calc(100dvh - 20px)!important}
+  #phSaleInvoiceBody,#phExtraBody{overflow-x:hidden!important;overflow-wrap:anywhere!important}
+  #phSaleInvoiceOverlay .flex.flex-wrap{flex-direction:column!important}
+  #phSaleInvoiceOverlay .flex.flex-wrap button{width:100%!important}
+}
+
+/* Bike service */
+#bikeServiceModalOverlay .grow{min-height:0!important}
+#bikeServiceModalOverlay .max-w-6xl{width:100%!important;max-width:1100px!important}
+#bsJobsBody{min-width:0!important}
+@media(max-width:640px){
+  #bikeServiceModalOverlay>.brand-gradient{padding:12px!important}
+  #bikeServiceModalOverlay>.grow{padding:10px!important}
+  #bikeServiceModalOverlay .grid.grid-cols-2.md\:grid-cols-6{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #bikeServiceModalOverlay .bs-step{min-width:110px!important;flex:0 0 auto!important}
+  #bsJobEditorOverlay>div,#bsInvoiceOverlay>div{max-width:94vw!important;max-height:calc(100dvh - 20px)!important}
+  #bsJobEditorOverlay .grid.grid-cols-1.md\:grid-cols-3,#bsInvoiceOverlay .grid.grid-cols-1.md\:grid-cols-3{grid-template-columns:1fr!important}
+  #bsJobEditorOverlay .flex.flex-wrap,#bsInvoiceOverlay .flex.flex-wrap{flex-direction:column!important}
+  #bsJobEditorOverlay .flex.flex-wrap button,#bsInvoiceOverlay .flex.flex-wrap button{width:100%!important}
+}
+
+/* Tables/lists scroll inside their own box */
+#ledgerTableBody,#masterInventoryTableBody,#searchTableBody{min-width:0}
+#ledgerModalOverlay .overflow-hidden:has(table),#masterInventoryModalOverlay .overflow-hidden:has(table),#searchModalOverlay .overflow-hidden:has(table){overflow-x:auto!important}
+
+/* Touch sizing without changing layout */
+@media(max-width:640px){button{min-height:44px}input,select{min-height:44px}textarea{min-height:80px}}
+
+/* Prevent text from pushing cards wider */
+#restaurantModalOverlay *,#pharmacyModalOverlay *,#bikeServiceModalOverlay *,#kdsModalOverlay *{min-width:0}
+</style>
+
 </head>
 <body class="theme-purple bg-slate-100 text-slate-800 min-h-screen flex flex-col items-center justify-between antialiased selection:bg-purple-500 selection:text-white pb-6">
 
