@@ -105,6 +105,11 @@
 
     .rest-input{width:100%;padding:.65rem .75rem;border:1px solid #cbd5e1;border-radius:.75rem;font-size:.75rem;font-weight:600;outline:none;background:#f8fafc}.rest-input:focus{background:#fff;box-shadow:0 0 0 2px rgba(95,37,159,.15)}.rest-mini{width:92px;padding:.25rem .4rem;border:1px solid #cbd5e1;border-radius:.5rem;text-align:right;font-family:monospace;font-weight:700}
 
+
+/* Restaurant POS tab safety: every top option remains clickable on mobile/desktop. */
+#restaurantModalOverlay .restaurant-tab{pointer-events:auto!important;position:relative;z-index:2;touch-action:manipulation;}
+#restaurantModalOverlay .restaurant-panel.hidden{display:none!important;}
+#restaurantModalOverlay .restaurant-panel:not(.hidden){display:block!important;}
 </style>
 <style id="bike-service-simple-ui">
 /* Simple Bike Service UI */
@@ -933,11 +938,11 @@ input,select,textarea{min-width:0}
       <button type="button" id="closeRestaurantBtn" class="text-white/90 p-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold">Close ✕</button>
     </div>
     <div class="bg-white border-b border-slate-200 px-3 sm:px-5 py-2 flex gap-2 overflow-x-auto shrink-0">
-      <button class="restaurant-tab brand-bg text-white px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap" data-tab="counter">🧾 Counter Billing</button>
-      <button class="restaurant-tab bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap" data-tab="orders">📋 Orders</button>
-      <button class="restaurant-tab bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap" data-tab="cancelled">❌ Cancelled Orders</button>
-      <button class="restaurant-tab bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap" data-tab="menu">🍔 Menu Management</button>
-      <button class="restaurant-tab bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap" data-tab="tables">🪑 Tables</button>
+      <button type="button" class="restaurant-tab brand-bg text-white px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap" data-tab="counter" onclick="window.restaurantShowTab(\'counter\');return false;">🧾 Counter Billing</button>
+      <button type="button" class="restaurant-tab bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap" data-tab="orders" onclick="window.restaurantShowTab(\'orders\');return false;">📋 Orders</button>
+      <button type="button" class="restaurant-tab bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap" data-tab="cancelled" onclick="window.restaurantShowTab(\'cancelled\');return false;">❌ Cancelled Orders</button>
+      <button type="button" class="restaurant-tab bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap" data-tab="menu" onclick="window.restaurantShowTab(\'menu\');return false;">🍔 Menu Management</button>
+      <button type="button" class="restaurant-tab bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap" data-tab="tables" onclick="window.restaurantShowTab(\'tables\');return false;">🪑 Tables</button>
     </div>
     <div class="grow overflow-y-auto bg-slate-100 p-3 sm:p-5">
       <section id="restaurantCounterTab" class="restaurant-panel max-w-7xl mx-auto">
@@ -3570,8 +3575,31 @@ input,select,textarea{min-width:0}
   function closeRest(){toggleModal($('restaurantModalOverlay'),false);toggleModal($('restaurantBillOverlay'),false)}
 
   $('gridRestaurantBtn').addEventListener('click',openRest);$('openRestaurantDrawerBtn').addEventListener('click',openRest);$('closeRestaurantBtn').addEventListener('click',closeRest);
-  document.querySelectorAll('.restaurant-tab').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
-  function showTab(tab){document.querySelectorAll('.restaurant-panel').forEach(x=>x.classList.add('hidden'));$('restaurant'+tab[0].toUpperCase()+tab.slice(1)+'Tab').classList.remove('hidden');document.querySelectorAll('.restaurant-tab').forEach(b=>{b.classList.toggle('brand-bg',b.dataset.tab===tab);b.classList.toggle('text-white',b.dataset.tab===tab);b.classList.toggle('bg-slate-100',b.dataset.tab!==tab);b.classList.toggle('text-slate-700',b.dataset.tab!==tab)});if(tab==='orders')renderOrders();if(tab==='cancelled')renderCancelledOrders();if(tab==='menu')renderMenuList();if(tab==='tables')renderTables()}
+  document.querySelectorAll('.restaurant-tab').forEach(b=>{b.type='button';b.setAttribute('role','tab');b.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();showTab(this.getAttribute('data-tab'))})});
+  window.restaurantShowTab=function(tab){showTab(tab)};
+  const restaurantModal=$('restaurantModalOverlay');
+  if(restaurantModal){restaurantModal.addEventListener('click',function(e){const b=e.target.closest('.restaurant-tab');if(!b)return;e.preventDefault();e.stopPropagation();showTab(b.getAttribute('data-tab'))})};
+  function showTab(tab){
+    const panelId='restaurant'+String(tab||'counter').charAt(0).toUpperCase()+String(tab||'counter').slice(1)+'Tab';
+    const target=$(panelId);
+    if(!target){console.error('Restaurant tab panel not found:',panelId);return}
+    document.querySelectorAll('#restaurantModalOverlay .restaurant-panel').forEach(x=>x.classList.add('hidden'));
+    target.classList.remove('hidden');
+    document.querySelectorAll('#restaurantModalOverlay .restaurant-tab').forEach(b=>{
+      const active=b.dataset.tab===tab;
+      b.classList.toggle('brand-bg',active);b.classList.toggle('text-white',active);
+      b.classList.toggle('bg-slate-100',!active);b.classList.toggle('text-slate-700',!active);
+    });
+    try{
+      if(tab==='orders')renderOrders();
+      else if(tab==='cancelled')renderCancelledOrders();
+      else if(tab==='menu'){renderCategorySelect();renderMenuList();}
+      else if(tab==='tables')renderTables();
+    }catch(err){
+      console.error('Restaurant tab render error:',tab,err);
+      toast('This section could not refresh. Please try again.',false);
+    }
+  }
   function allRestaurantCategories(){const base=['Snacks','Starters','Main Course','Rice','Biryani','Beverages','Desserts'];return [...new Set([...base,...customCategories,...menu.map(x=>x.category).filter(Boolean)])]}
 function renderCategorySelect(){const sel=$('menuCategory');if(!sel)return;const current=sel.value;sel.innerHTML=allRestaurantCategories().map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')+'<option value="__CUSTOM__">＋ Custom Category</option>';if(current&&allRestaurantCategories().includes(current))sel.value=current;renderCustomCategoryList()}
 function renderCustomCategoryList(){const box=$('customCategoryList');if(!box)return;box.innerHTML=customCategories.length?customCategories.map(c=>`<div class="flex items-center justify-between bg-white border rounded-lg px-2 py-1.5"><span class="text-[10px] font-bold">${esc(c)}</span><span class="flex gap-1"><button type="button" onclick="window.renameCustomCategory('${encodeURIComponent(c)}')" class="text-blue-600 text-[10px] font-bold">Edit</button><button type="button" onclick="window.deleteCustomCategory('${encodeURIComponent(c)}')" class="text-red-600 text-[10px] font-bold">Delete</button></span></div>`).join(''):'<div class="text-[10px] text-slate-400">No custom categories yet.</div>'}
@@ -4171,6 +4199,32 @@ $('menuSave').addEventListener('click',()=>{const name=$('menuName').value.trim(
   document.addEventListener('DOMContentLoaded',hidePharmacyAlerts);
   window.addEventListener('load',hidePharmacyAlerts);
   setTimeout(hidePharmacyAlerts,500);
+})();
+</script>
+<style>
+#restaurantModalOverlay .restaurant-tab{position:relative!important;z-index:9999!important;pointer-events:auto!important;cursor:pointer!important;touch-action:manipulation!important}
+</style>
+<script>
+(function(){
+ function activate(tab){
+  var root=document.getElementById('restaurantModalOverlay');
+  if(!root)return false;
+  var ids={counter:'restaurantCounterTab',orders:'restaurantOrdersTab',cancelled:'restaurantCancelledTab',menu:'restaurantMenuTab',tables:'restaurantTablesTab'};
+  var target=document.getElementById(ids[tab]); if(!target)return false;
+  root.querySelectorAll('.restaurant-panel').forEach(function(p){p.classList.add('hidden');p.style.display='none';});
+  target.classList.remove('hidden');target.style.display='block';
+  root.querySelectorAll('.restaurant-tab').forEach(function(b){var a=b.getAttribute('data-tab')===tab;b.classList.toggle('brand-bg',a);b.classList.toggle('text-white',a);b.classList.toggle('bg-slate-100',!a);b.classList.toggle('text-slate-700',!a);});
+  return true;
+ }
+ window.restaurantTabFix=activate;
+ function bind(){
+  var root=document.getElementById('restaurantModalOverlay'); if(!root)return;
+  root.querySelectorAll('.restaurant-tab').forEach(function(btn){
+   btn.onclick=function(e){e.preventDefault();e.stopImmediatePropagation();activate(btn.getAttribute('data-tab'));return false;};
+   btn.addEventListener('touchend',function(e){e.preventDefault();activate(btn.getAttribute('data-tab'));},{passive:false});
+  });
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();
 })();
 </script>
 </body>
