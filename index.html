@@ -2581,7 +2581,7 @@
       unsubscribeKDS = window.onSnapshot(q, (snapshot) => {
         let cloudOrders = [];
         snapshot.forEach(doc => {
-          cloudOrders.push({ id: doc.id, ...doc.data() });
+          cloudOrders.push({ ...doc.data(), firestoreId: doc.id });
         });
         cloudOrders.sort((a, b) => a.timestamp - b.timestamp);
         const hadPending=cloudOrders.some(o=>o.restaurant&&o.status==='pending');
@@ -2597,10 +2597,12 @@
         const isRestaurant=!!order.restaurant;
         const statusColor = order.status === 'pending' ? 'bg-red-100 text-red-800 border-red-300' : order.status === 'accepted' ? 'bg-blue-100 text-blue-800 border-blue-300' : order.status === 'preparing' ? 'bg-orange-100 text-orange-800 border-orange-300' : order.status === 'ready' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-100 text-slate-700 border-slate-300';
         let actions='';
-        if(order.status==='pending') actions=`<button onclick="updateOrderStatus('${order.id}','accepted')" class="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs transition">Accept Order</button>`;
-        else if(order.status==='accepted') actions=`<button onclick="updateOrderStatus('${order.id}','preparing')" class="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold text-xs transition">Start Preparing</button>`;
-        else if(order.status==='preparing') actions=`<button onclick="updateOrderStatus('${order.id}','ready')" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs transition">Mark Ready</button>`;
-        else if(order.status==='ready') actions=`<button onclick="updateOrderStatus('${order.id}','completed')" class="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-xs transition">Completed</button>`;
+        const actionId = order.firestoreId || order.id;
+        const restaurantId = order.restaurant ? order.id : '';
+        if(order.status==='pending') actions=`<button onclick="updateOrderStatus('${actionId}','accepted','${restaurantId}')" class="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs transition">Accept Order</button>`;
+        else if(order.status==='accepted') actions=`<button onclick="updateOrderStatus('${actionId}','preparing','${restaurantId}')" class="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold text-xs transition">Start Preparing</button>`;
+        else if(order.status==='preparing') actions=`<button onclick="updateOrderStatus('${actionId}','ready','${restaurantId}')" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs transition">Mark Ready</button>`;
+        else if(order.status==='ready') actions=`<button onclick="updateOrderStatus('${actionId}','completed','${restaurantId}')" class="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-xs transition">Completed</button>`;
         const itemsHtml=(order.items||[]).map(item=>`<li class="flex justify-between gap-2 pb-1 mb-1 border-b border-slate-100/50 last:border-0"><span><span class="font-black pr-1">${item.qty}×</span>${item.name}</span>${item.notes?`<span class="text-[9px] text-slate-400">${item.notes}</span>`:''}</li>`).join('');
         const timeString=new Date(order.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
         return `<div class="bg-white p-4 rounded-2xl border-2 ${statusColor} shadow-md flex flex-col ${isRestaurant?'ring-2 ring-orange-200':''}"><div class="flex justify-between items-center mb-2 border-b border-slate-200 pb-2"><span class="font-black text-sm text-slate-800">${order.orderNo||'#'+String(order.id).slice(-4).toUpperCase()} <span class="text-[10px] text-slate-400 font-normal ml-1">@ ${timeString}</span></span><span class="text-[10px] uppercase font-bold px-2.5 py-1 rounded-full ${statusColor}">${order.status}</span></div><div class="text-xs font-bold text-slate-600 mb-2 bg-slate-50 p-2 rounded-lg">👤 ${order.customer||'Walk-in'} ${order.orderType?`• ${order.orderType}`:''} ${order.table?`• ${order.table}`:''}</div><ul class="grow mb-3 text-xs font-medium text-slate-700 list-none">${itemsHtml}</ul>${order.notes?`<div class="text-[10px] bg-amber-50 text-amber-800 rounded-lg p-2 mb-3"><b>Note:</b> ${order.notes}</div>`:''}<div class="mt-auto pt-2">${actions}</div></div>`;
@@ -3292,9 +3294,17 @@
   function renderCart(){const c=calc();$('restCart').innerHTML=cart.length?cart.map((x,i)=>`<div class="flex gap-2 items-center bg-slate-50 rounded-xl p-2"><div class="grow"><b class="text-xs">${esc(x.name)}</b><span class="block text-[10px] text-slate-500">${money(x.price)} × ${x.qty}</span></div><div class="flex items-center gap-1"><button onclick="restQty(${i},-1)" class="w-7 h-7 rounded-lg bg-white border font-black">−</button><b class="text-xs w-5 text-center">${x.qty}</b><button onclick="restQty(${i},1)" class="w-7 h-7 rounded-lg bg-white border font-black">+</button></div><b class="text-xs w-20 text-right">${money(x.price*x.qty)}</b><button onclick="restRemove(${i})" class="text-red-500 font-bold">×</button></div>`).join(''):'<div class="p-8 text-center text-slate-400 text-xs">Tap food items to build the order.</div>';$('restSubtotal').textContent=money(c.sub);$('restTax').textContent=money(c.tax);$('restGrandTotal').textContent=money(c.total)}
   $('restMenuSearch').addEventListener('input',renderMenuCounter);$('restDiscount').addEventListener('input',renderCart);$('restClearCart').addEventListener('click',()=>{cart=[];$('restDiscount').value=0;renderCart()});$('restOrderType').addEventListener('change',()=>{$('restTableWrap').classList.toggle('hidden',$('restOrderType').value!=='Dine-In')});
   function nextOrder(){let n=Number(localStorage.getItem(K.seq)||1024)+1;localStorage.setItem(K.seq,n);return '#'+n}
-  function sendKitchen(){if(!cart.length){toast('Add at least one food item.',false);return}const type=$('restOrderType').value;const table=$('restTable').value;if(type==='Dine-In'&&!table){toast('Select a table for Dine-In.',false);return}const c=calc();const now=new Date();const order={id:'RO-'+Date.now(),orderNo:nextOrder(),date:today(),timestamp:now.getTime(),time:now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),customer:$('restCustomer').value.trim()||'Walk-in',phone:$('restPhone').value.trim(),orderType:type,table:table||'',notes:$('restNotes').value.trim(),subtotal:c.sub,discount:c.disc,tax:c.tax,total:c.total,paymentStatus:'Unpaid',amountPaid:0,balance:c.total,kitchenStatus:'pending'};const items=cart.map(x=>({id:'OI-'+Date.now()+'-'+Math.random().toString(16).slice(2),orderId:order.id,menuId:x.menuId,name:x.name,qty:x.qty,rate:x.price,gst:x.gst,notes:x.prep||''}));orders.unshift(order);orderItems.push(...items);kitchen.unshift({orderId:order.id,status:'pending',updatedAt:now.toISOString()});save(K.orders,orders);save(K.orderItems,orderItems);save(K.kitchen,kitchen);if(table){const t=tables.find(x=>x.id===table);if(t){t.status='Occupied';save(K.tables,tables)}}
+  async function sendKitchen(){if(!cart.length){toast('Add at least one food item.',false);return}const type=$('restOrderType').value;const table=$('restTable').value;if(type==='Dine-In'&&!table){toast('Select a table for Dine-In.',false);return}const c=calc();const now=new Date();const order={id:'RO-'+Date.now(),orderNo:nextOrder(),date:today(),timestamp:now.getTime(),time:now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),customer:$('restCustomer').value.trim()||'Walk-in',phone:$('restPhone').value.trim(),orderType:type,table:table||'',notes:$('restNotes').value.trim(),subtotal:c.sub,discount:c.disc,tax:c.tax,total:c.total,paymentStatus:'Unpaid',amountPaid:0,balance:c.total,kitchenStatus:'pending'};const items=cart.map(x=>({id:'OI-'+Date.now()+'-'+Math.random().toString(16).slice(2),orderId:order.id,menuId:x.menuId,name:x.name,qty:x.qty,rate:x.price,gst:x.gst,notes:x.prep||''}));orders.unshift(order);orderItems.push(...items);kitchen.unshift({orderId:order.id,status:'pending',updatedAt:now.toISOString()});save(K.orders,orders);save(K.orderItems,orderItems);save(K.kitchen,kitchen);if(table){const t=tables.find(x=>x.id===table);if(t){t.status='Occupied';save(K.tables,tables)}}
     const kdsOrder={id:order.id,orderNo:order.orderNo,customer:order.customer,phone:order.phone,items:items.map(i=>({name:i.name,qty:i.qty,notes:i.notes})),status:'pending',timestamp:order.timestamp,table:order.table,orderType:order.orderType,total:order.total,restaurant:true,notes:order.notes};
-    if(currentUserUid&&window.firebaseDb){window.addDoc(window.collection(window.firebaseDb,'live_orders',currentUserUid,'orders'),kdsOrder).catch(e=>console.error(e));}
+    if(currentUserUid&&window.firebaseDb){
+      try {
+        const ref = await window.addDoc(window.collection(window.firebaseDb,'live_orders',currentUserUid,'orders'),kdsOrder);
+        kdsOrder.firestoreId = ref.id;
+      } catch(e) {
+        console.error('Restaurant order could not be sent to Firebase KDS:', e);
+        toast('Order saved locally, but kitchen cloud sync failed.', false);
+      }
+    }
     localLiveOrders.push(kdsOrder);localStorage.setItem('localLiveOrders',JSON.stringify(localLiveOrders));if(typeof renderKDS==='function')renderKDS(localLiveOrders);cart=[];$('restCustomer').value='';$('restPhone').value='';$('restNotes').value='';$('restDiscount').value=0;$('restTable').value='';renderCart();renderTables();renderDashboard();toast(`Order ${order.orderNo} Sent to Kitchen`);playKitchenAlert();
   }
   $('restSendKitchen').addEventListener('click',sendKitchen);function playKitchenAlert(){try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return;const a=new A(),o=a.createOscillator(),g=a.createGain();o.frequency.value=880;g.gain.value=.08;o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.18)}catch(e){}}
@@ -3323,12 +3333,30 @@
   $('restRefreshOrders').addEventListener('click',renderOrders);$('restOrderSearch').addEventListener('input',renderOrders);$('restOrderDate').addEventListener('change',renderOrders);$('restOrderTableFilter').addEventListener('change',renderOrders);$('restOrderStatus').addEventListener('change',renderOrders);
   // Patch existing KDS workflow so restaurant orders stay linked to the existing screen.
   const oldUpdate=window.updateOrderStatus;
-  window.updateOrderStatus=async function(orderId,newStatus){
+  window.updateOrderStatus=async function(firestoreId,newStatus,restaurantId=''){
+    // Keep the restaurant order linked to the real Firebase document ID.
+    const linkedRestaurantId = restaurantId || (localLiveOrders.find(o=>o.id===firestoreId && o.restaurant)?.id) || firestoreId;
     if(newStatus==='accepted' || newStatus==='preparing' || newStatus==='ready' || newStatus==='completed'){
-      const ro=orders.find(o=>o.id===orderId);if(ro)syncOrderFromKds(orderId,newStatus);
+      const ro=orders.find(o=>o.id===linkedRestaurantId);
+      if(ro) syncOrderFromKds(linkedRestaurantId,newStatus);
     }
-    if(currentUserUid&&window.firebaseDb){try{const ref=window.doc(window.firebaseDb,'live_orders',currentUserUid,'orders',orderId);await window.updateDoc(ref,{status:newStatus});}catch(e){console.error(e)}}
-    const idx=localLiveOrders.findIndex(o=>o.id===orderId);if(idx>-1){if(newStatus==='completed')localLiveOrders.splice(idx,1);else localLiveOrders[idx].status=newStatus;localStorage.setItem('localLiveOrders',JSON.stringify(localLiveOrders));if(typeof renderKDS==='function')renderKDS(localLiveOrders)}
+    if(currentUserUid&&window.firebaseDb){
+      try {
+        const ref=window.doc(window.firebaseDb,'live_orders',currentUserUid,'orders',firestoreId);
+        await window.updateDoc(ref,{status:newStatus});
+      } catch(e) {
+        console.error('KDS status update failed:', e);
+        toast('Kitchen status could not sync. Please try again.', false);
+        return;
+      }
+    }
+    const idx=localLiveOrders.findIndex(o=>o.id===linkedRestaurantId || o.firestoreId===firestoreId);
+    if(idx>-1){
+      if(newStatus==='completed') localLiveOrders.splice(idx,1);
+      else localLiveOrders[idx].status=newStatus;
+      localStorage.setItem('localLiveOrders',JSON.stringify(localLiveOrders));
+    }
+    if(typeof renderKDS==='function' && !currentUserUid) renderKDS(localLiveOrders);
   };
   window.playKitchenAlert=playKitchenAlert;window.addEventListener('load',()=>{renderAll()});
 })();
