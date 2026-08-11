@@ -1182,8 +1182,8 @@ input,select,textarea{min-width:0}
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-          <div class="bg-white rounded-2xl border p-3"><div class="text-[10px] font-black text-slate-500 uppercase">Medicines</div><div id="phStatMedicines" class="text-2xl font-black text-slate-800">0</div></div>
-          <div class="bg-white rounded-2xl border p-3"><div class="text-[10px] font-black text-slate-500 uppercase">Stock Qty</div><div id="phStatQty" class="text-2xl font-black text-slate-800">0</div></div>
+          <div class="hidden" aria-hidden="true"><div id="phStatMedicines">0</div></div>
+          <div class="hidden" aria-hidden="true"><div id="phStatQty">0</div></div>
           <div class="hidden" aria-hidden="true"><div id="phStatLow">0</div></div>
           <div class="hidden" aria-hidden="true"><div id="phStatOut">0</div></div>
           <div class="hidden" aria-hidden="true"><div id="phStatSoon">0</div></div>
@@ -1196,11 +1196,6 @@ input,select,textarea{min-width:0}
             <button type="button" id="phAddStockBtn" class="bg-emerald-600 text-white rounded-xl py-3 font-black text-xs">＋ Add Stock</button>
             <button type="button" id="phAdjustBtn" class="bg-blue-600 text-white rounded-xl py-3 font-black text-xs">↕ Stock Adjustment</button>
             <button type="button" id="phExpiryBtn" class="bg-orange-500 text-white rounded-xl py-3 font-black text-xs">⏰ Expiry</button>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-            <select id="phCategoryFilter" class="px-3 py-3 rounded-xl border bg-slate-50 text-sm"><option value="">All Categories</option></select>
-            <select id="phSupplierFilter" class="px-3 py-3 rounded-xl border bg-slate-50 text-sm"><option value="">All Suppliers</option></select>
-            <select id="phRackFilter" class="px-3 py-3 rounded-xl border bg-slate-50 text-sm"><option value="">All Racks / Shelves</option></select>
           </div>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <select id="phStatusFilter" class="px-3 py-2.5 rounded-xl border bg-slate-50 text-xs font-bold"><option value="">All Stock</option><option value="low">Low Stock</option><option value="out">Out of Stock</option><option value="soon">Expiring Soon</option><option value="expired">Expired</option></select>
@@ -1305,7 +1300,15 @@ input,select,textarea{min-width:0}
     <div id="phStockActionOverlay" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-[100] hidden items-center justify-center p-3">
       <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
         <div class="brand-gradient text-white p-4 flex items-center justify-between"><div><h4 id="phActionTitle" class="font-black">Add Stock</h4><p id="phActionHelp" class="text-[10px] text-white/70">Increase the medicine quantity.</p></div><button type="button" id="phStockActionClose" class="text-white text-xl">×</button></div>
-        <div class="p-4 space-y-2"><select id="phActionMedicine" class="w-full px-3 py-3 rounded-xl border"></select><select id="phActionType" class="w-full px-3 py-3 rounded-xl border"><option value="in">Add Stock</option><option value="adjust">Stock Adjustment</option><option value="transfer">Stock Transfer</option><option value="damaged">Damaged / Expired</option><option value="return">Stock Return</option></select><input id="phActionQty" type="number" min="1" step="1" class="w-full px-3 py-3 rounded-xl border" placeholder="Quantity"><input id="phActionToRack" class="w-full px-3 py-3 rounded-xl border hidden" placeholder="Transfer to Rack / Shelf"><input id="phActionNote" class="w-full px-3 py-3 rounded-xl border" placeholder="Note / reason"><div class="grid grid-cols-2 gap-2 pt-2"><button type="button" id="phActionSave" class="brand-bg text-white py-3 rounded-xl font-black text-xs">Save Stock Change</button><button type="button" id="phActionCancel" class="bg-slate-100 text-slate-700 py-3 rounded-xl font-black text-xs">Cancel</button></div></div>
+        <div class="p-4 space-y-2"><div class="space-y-2">
+          <input id="phActionMedicineSearch" type="search" autocomplete="off" class="w-full px-3 py-3 rounded-xl border" placeholder="🔎 Search medicine by name, generic, barcode or batch...">
+          <div id="phActionMedicineResults" class="max-h-52 overflow-y-auto space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-2">
+            <div class="text-xs text-slate-500 p-2">Type to find a medicine.</div>
+          </div>
+          <select id="phActionMedicine" class="hidden"></select>
+          <div id="phActionMedicineSelected" class="hidden rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-2 text-sm font-bold text-emerald-800"></div>
+        </div>
+        <select id="phActionType" class="w-full px-3 py-3 rounded-xl border"><option value="in">Add Stock</option><option value="adjust">Stock Adjustment</option><option value="transfer">Stock Transfer</option><option value="damaged">Damaged / Expired</option><option value="return">Stock Return</option></select><input id="phActionQty" type="number" min="1" step="1" class="w-full px-3 py-3 rounded-xl border" placeholder="Quantity"><input id="phActionToRack" class="w-full px-3 py-3 rounded-xl border hidden" placeholder="Transfer to Rack / Shelf"><input id="phActionNote" class="w-full px-3 py-3 rounded-xl border" placeholder="Note / reason"><div class="grid grid-cols-2 gap-2 pt-2"><button type="button" id="phActionSave" class="brand-bg text-white py-3 rounded-xl font-black text-xs">Save Stock Change</button><button type="button" id="phActionCancel" class="bg-slate-100 text-slate-700 py-3 rounded-xl font-black text-xs">Cancel</button></div></div>
       </div>
     </div>
 
@@ -3953,10 +3956,7 @@ $('menuSave').addEventListener('click',()=>{const name=$('menuName').value.trim(
     $('phStatSoon').textContent=medicines.filter(isSoon).length;
     $('phStatValue').textContent=money(medicines.reduce((a,m)=>a+Number(m.stock||0)*Number(m.purchase||0),0));
   }
-  function fillFilters(){
-    const cats=[...new Set(medicines.map(m=>m.category).filter(Boolean))].sort(); const sups=[...new Set(medicines.map(m=>m.supplier).filter(Boolean))].sort(); const racks=[...new Set(medicines.map(m=>m.rack).filter(Boolean))].sort();
-    [['phCategoryFilter',cats],['phSupplierFilter',sups],['phRackFilter',racks]].forEach(([id,arr])=>{const el=$(id),old=el.value;const label=id==='phCategoryFilter'?'All Categories':id==='phSupplierFilter'?'All Suppliers':'All Racks / Shelves';el.innerHTML='<option value="">'+label+'</option>'+arr.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');if(arr.includes(old))el.value=old});
-  }
+  function fillFilters(){}
   function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
   function renderAlerts(){
     const low=medicines.filter(m=>isLow(m)&&!isOut(m)), out=medicines.filter(isOut), exp=medicines.filter(isSoon||isExpired);
@@ -3964,8 +3964,8 @@ $('menuSave').addEventListener('click',()=>{const name=$('menuName').value.trim(
     $('phQuickAlerts').querySelectorAll('[data-ph-alert]').forEach(b=>b.addEventListener('click',()=>{$('phStatusFilter').value=b.dataset.phAlert==='soon'?'soon':b.dataset.phAlert;renderList()}));
   }
   function renderList(){
-    const q=($('phSearch').value||'').trim().toLowerCase(), cat=$('phCategoryFilter').value,sup=$('phSupplierFilter').value,rack=$('phRackFilter').value,status=$('phStatusFilter').value,sort=$('phSort').value;
-    let arr=medicines.filter(m=>{const hay=[m.name,m.generic,m.brand,m.batch,m.barcode].join(' ').toLowerCase();if(q&&!hay.includes(q))return false;if(cat&&m.category!==cat)return false;if(sup&&m.supplier!==sup)return false;if(rack&&m.rack!==rack)return false;if(status==='low'&&!isLow(m))return false;if(status==='out'&&!isOut(m))return false;if(status==='soon'&&!isSoon(m))return false;if(status==='expired'&&!isExpired(m))return false;return true});
+    const q=($('phSearch').value||'').trim().toLowerCase(), status=$('phStatusFilter').value,sort=$('phSort').value;
+    let arr=medicines.filter(m=>{const hay=[m.name,m.generic,m.brand,m.batch,m.barcode].join(' ').toLowerCase();if(q&&!hay.includes(q))return false;if(status==='low'&&!isLow(m))return false;if(status==='out'&&!isOut(m))return false;if(status==='soon'&&!isSoon(m))return false;if(status==='expired'&&!isExpired(m))return false;return true});
     arr.sort((a,b)=>sort==='qty'?Number(b.stock)-Number(a.stock):sort==='expiry'?String(a.expiryDate||'').localeCompare(String(b.expiryDate||'')):sort==='price'?Number(b.selling||0)-Number(a.selling||0):String(a.name).localeCompare(String(b.name)));
     const live=$('phLiveSearchResults');
     if(live){
@@ -3994,10 +3994,34 @@ $('menuSave').addEventListener('click',()=>{const name=$('menuName').value.trim(
     const name=$('phName').value.trim();if(!name){toast('Enter medicine name.',false);return}const id=$('phId').value||'PH-'+Date.now();const data={id,name,generic:$('phGeneric').value.trim(),brand:$('phBrand').value.trim(),category:$('phCategory').value.trim()||'General',batch:$('phBatch').value.trim(),barcode:$('phBarcode').value.trim(),expiryDate:$('phExpiry').value,purchase:Number($('phPurchase').value)||0,selling:Number($('phSelling').value)||0,stock:Math.max(0,Number($('phStock').value)||0),minStock:Math.max(0,Number($('phMin').value)||0),supplier:$('phSupplier').value.trim(),rack:$('phRack').value.trim(),updatedAt:new Date().toISOString()};
     const existing=medicines.findIndex(m=>m.id===id);if(existing>=0){data.masterKey=medicines[existing].masterKey||'';medicines[existing]=data;syncToMaster(data)}else{const dup=medicines.find(m=>data.barcode&&m.barcode===data.barcode&&data.batch&&m.batch===data.batch);if(dup){dup.stock+=data.stock;Object.assign(dup,data,{stock:dup.stock});}else medicines.unshift(data)}save(KEY,medicines);closeForm();renderAll();toast('Medicine saved');
   }
-  function fillActionMedicine(){const s=$('phActionMedicine');if(!s)return;s.innerHTML=medicines.map(m=>`<option value="${esc(m.id)}">${esc(m.name)} • Stock ${Number(m.stock||0)} • ${esc(m.batch||'-')}</option>`).join('');}
-  function openAction(id='',mode='in'){fillActionMedicine();if(id)$('phActionMedicine').value=id;actionMode=mode;$('phActionType').value=mode;$('phActionToRack').classList.toggle('hidden',mode!=='transfer');$('phActionTitle').textContent=mode==='in'?'Add Stock':mode==='adjust'?'Stock Adjustment':mode==='transfer'?'Stock Transfer':mode==='damaged'?'Damaged / Expired':'Stock Return';$('phActionHelp').textContent=mode==='in'?'Increase stock.':mode==='adjust'?'Use a positive or negative quantity.':mode==='transfer'?'Move the rack location.':mode==='damaged'?'Reduce stock for damaged or expired medicine.':'Reduce stock for supplier return.';$('phActionQty').value='';$('phActionNote').value='';$('phStockActionOverlay').classList.remove('hidden');$('phStockActionOverlay').classList.add('flex')}
+  function fillActionMedicine(selectedId=''){
+    const s=$('phActionMedicine'), input=$('phActionMedicineSearch'), results=$('phActionMedicineResults'), selected=$('phActionMedicineSelected');
+    if(!s||!input||!results)return;
+    s.innerHTML=medicines.map(m=>`<option value="${esc(m.id)}">${esc(m.name)} • ${esc(m.batch||'-')}</option>`).join('');
+    if(selectedId) s.value=selectedId;
+    input.value='';
+    selected?.classList.add('hidden');
+    renderActionMedicineResults('');
+  }
+  function renderActionMedicineResults(query=''){
+    const results=$('phActionMedicineResults'); if(!results)return;
+    const q=String(query||'').trim().toLowerCase();
+    if(!q){results.innerHTML='<div class="text-xs text-slate-500 p-2">Type medicine name, generic, barcode or batch to search.</div>';return;}
+    const matches=medicines.filter(m=>[m.name,m.generic,m.brand,m.barcode,m.batch].some(v=>String(v||'').toLowerCase().includes(q))).slice(0,50);
+    if(!matches.length){results.innerHTML='<div class="text-xs text-slate-500 p-2">No medicine found.</div>';return;}
+    results.innerHTML=matches.map(m=>`<button type="button" class="w-full text-left bg-white border border-slate-200 rounded-xl p-3 hover:border-emerald-400" data-ph-action-med="${esc(m.id)}"><div class="font-black text-sm text-slate-800">${esc(m.name)}</div><div class="text-[11px] text-slate-500 mt-1">${esc(m.generic||m.brand||'')} • Batch ${esc(m.batch||'-')} • Rack ${esc(m.rack||'-')}</div><div class="text-[11px] mt-1 font-bold"><span class="text-emerald-700">Available: ${Number(m.stock||0)}</span><span class="text-slate-400"> • Exp: ${esc(m.expiry||'-')}</span></div></button>`).join('');
+    results.querySelectorAll('[data-ph-action-med]').forEach(btn=>btn.addEventListener('click',()=>selectActionMedicine(btn.dataset.phActionMed)));
+  }
+  function selectActionMedicine(id){
+    const s=$('phActionMedicine'), input=$('phActionMedicineSearch'), results=$('phActionMedicineResults'), selected=$('phActionMedicineSelected'), m=medicines.find(x=>x.id===id);
+    if(!s||!m)return;
+    s.value=id; input.value=m.name; results.innerHTML='';
+    if(selected){selected.textContent=`Selected: ${m.name} • Stock ${Number(m.stock||0)} • Rack ${m.rack||'-'} • Batch ${m.batch||'-'}`;selected.classList.remove('hidden');}
+  }
+  function openAction(id='',mode='in'){fillActionMedicine(id);if(id)selectActionMedicine(id);actionMode=mode;$('phActionType').value=mode;$('phActionToRack').classList.toggle('hidden',mode!=='transfer');$('phActionTitle').textContent=mode==='in'?'Add Stock':mode==='adjust'?'Stock Adjustment':mode==='transfer'?'Stock Transfer':mode==='damaged'?'Damaged / Expired':'Stock Return';$('phActionHelp').textContent=mode==='in'?'Increase stock.':mode==='adjust'?'Use a positive or negative quantity.':mode==='transfer'?'Move the rack location.':mode==='damaged'?'Reduce stock for damaged or expired medicine.':'Reduce stock for supplier return.';$('phActionQty').value='';$('phActionNote').value='';$('phStockActionOverlay').classList.remove('hidden');$('phStockActionOverlay').classList.add('flex')}
   function closeAction(){$('phStockActionOverlay').classList.add('hidden');$('phStockActionOverlay').classList.remove('flex')}
   $('phActionType').addEventListener('change',e=>{actionMode=e.target.value;$('phActionToRack').classList.toggle('hidden',actionMode!=='transfer')});
+  $('phActionMedicineSearch')?.addEventListener('input',e=>renderActionMedicineResults(e.target.value));
   function saveAction(){
     const id=$('phActionMedicine').value,m=medicines.find(x=>x.id===id),type=$('phActionType').value,raw=Number($('phActionQty').value);if(!m||!raw){toast('Select medicine and enter quantity.',false);return}let qty=Math.abs(raw),before=Number(m.stock||0),after=before;
     if(type==='in')after=before+qty; else if(type==='adjust')after=Math.max(0,before+Number($('phActionQty').value)); else if(type==='transfer'){if($('phActionToRack').value.trim())m.rack=$('phActionToRack').value.trim();else{toast('Enter destination rack.',false);return}} else after=Math.max(0,before-qty);
@@ -4018,7 +4042,7 @@ $('menuSave').addEventListener('click',()=>{const name=$('menuName').value.trim(
   $('phAdjustBtn')?.addEventListener('click',()=>openAction('', 'adjust'));$('phStockActionClose')?.addEventListener('click',closeAction);$('phActionCancel')?.addEventListener('click',closeAction);$('phActionSave')?.addEventListener('click',saveAction);
   $('phHistoryBtn')?.addEventListener('click',()=>{$('phHistoryOverlay').classList.remove('hidden');$('phHistoryOverlay').classList.add('flex');renderHistory()});$('phHistoryClose')?.addEventListener('click',()=>{$('phHistoryOverlay').classList.add('hidden');$('phHistoryOverlay').classList.remove('flex')});
   $('phDeleteYes')?.addEventListener('click',deleteMedicine);$('phDeleteNo')?.addEventListener('click',closeDelete);$('phScannerClose')?.addEventListener('click',()=>{$('phScannerOverlay').classList.add('hidden');$('phScannerOverlay').classList.remove('flex');stopScan()});$('phScannerFind')?.addEventListener('click',findBarcode);$('phScanBtn')?.addEventListener('click',startScan);
-  ['phSearch','phCategoryFilter','phSupplierFilter','phRackFilter','phStatusFilter','phSort'].forEach(id=>$(id)?.addEventListener('input',renderList));['phCategoryFilter','phSupplierFilter','phRackFilter','phStatusFilter','phSort'].forEach(id=>$(id)?.addEventListener('change',renderList));
+  ['phSearch','phStatusFilter','phSort'].forEach(id=>$(id)?.addEventListener('input',renderList));['phStatusFilter','phSort'].forEach(id=>$(id)?.addEventListener('change',renderList));
   $('phExpiryBtn')?.addEventListener('click',()=>{$('phStatusFilter').value='soon';renderList()});
   // Seed nothing: staff starts with a clean pharmacy list.
 
