@@ -291,6 +291,177 @@
 .bs-job-actions{display:flex;gap:7px;flex-wrap:wrap}
 @media(max-width:640px){.bs-step{min-width:110px}.bs-job-actions button{flex:1;min-width:88px}.bsf{font-size:16px!important}}
 </style>
+
+<style id="mobile-safety-layer">
+/* ==========================================================
+   MOBILE-FIRST SAFETY LAYER
+   Keeps every existing module usable on phone/tablet screens
+   without changing the desktop layout.
+   ========================================================== */
+html, body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden !important;
+}
+body {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+*, *::before, *::after { box-sizing: border-box; }
+img, svg, video, canvas { max-width: 100%; height: auto; }
+button, input, select, textarea { max-width: 100%; font: inherit; }
+button { touch-action: manipulation; }
+
+/* Never let a wide content area push the phone viewport sideways. */
+main, section, article, aside, header, footer, nav, .container, .content,
+.modal, .modal-content, .drawer, .panel, .card, .table-container {
+  max-width: 100%;
+}
+
+/* Long data tables remain usable by horizontal scrolling inside their box. */
+table { max-width: 100%; }
+.overflow-x-auto, .table-scroll, .table-container, .data-table-wrap {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Dialogs / modals */
+.modal, [role="dialog"], .modal-overlay {
+  max-width: 100vw !important;
+}
+.modal-content, .modal > div, [role="dialog"] > div {
+  width: min(96vw, 900px) !important;
+  max-width: 96vw !important;
+  max-height: calc(100dvh - 24px) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent long medicine names, order numbers, invoices and job cards
+   from creating horizontal overflow. */
+.break-anywhere, .break-words,
+[class*="order"], [class*="invoice"], [class*="medicine"], [class*="job-card"] {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+@media (max-width: 768px) {
+  body { font-size: 15px; }
+
+  /* App-level grids become one column on phones. */
+  .grid { grid-template-columns: minmax(0, 1fr) !important; }
+  .grid-cols-2, .grid-cols-3, .grid-cols-4, .grid-cols-5,
+  .md\\:grid-cols-2, .md\\:grid-cols-3, .lg\\:grid-cols-2,
+  .lg\\:grid-cols-3, .lg\\:grid-cols-4 {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  /* Flex rows wrap instead of overflowing. */
+  .flex { min-width: 0; }
+  .flex-row { flex-wrap: wrap !important; }
+  .flex > * { min-width: 0; }
+
+  /* Inputs/buttons are easy to tap. */
+  input, select, textarea { min-height: 44px; }
+  button { min-height: 44px; }
+
+  /* Navigation/category rows can scroll rather than stretch the page. */
+  .overflow-x-auto, [class*="overflow-x-auto"] {
+    scrollbar-width: thin;
+  }
+
+  /* Side drawers fit the phone width. */
+  [class*="fixed"][class*="w-"],
+  .drawer, .side-menu, .sidebar {
+    max-width: 92vw !important;
+  }
+
+  /* POS two-panel layouts: cart comes below the item list. */
+  .pos-layout, .restaurant-pos-layout, .pharmacy-pos-layout,
+  .counter-layout, .billing-layout {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  .pos-layout > *, .restaurant-pos-layout > *, .pharmacy-pos-layout > *,
+  .counter-layout > *, .billing-layout > * {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Header controls wrap cleanly. */
+  h1 { font-size: clamp(1.35rem, 6vw, 2rem); line-height: 1.15; }
+  h2 { font-size: clamp(1.15rem, 5vw, 1.5rem); }
+  h3 { font-size: clamp(1rem, 4.5vw, 1.25rem); }
+
+  /* Keep form rows usable. */
+  .form-row, .form-grid, .field-row, .input-row {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: .65rem !important;
+  }
+
+  /* Cards and panels lose excessive desktop padding. */
+  .card, .panel, .rounded-xl, .rounded-2xl, .rounded-3xl {
+    max-width: 100%;
+  }
+
+  /* Print previews stay inside the viewport. */
+  .print-preview, .invoice-preview, .job-card-preview {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+  }
+
+  /* QR areas never force horizontal scroll. */
+  #qrCode, #qr-code, .qr-code, .qrcode {
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  /* Fixed bottom action bars respect phone safe area. */
+  .fixed-bottom, [class*="fixed bottom-0"] {
+    padding-bottom: max(.5rem, env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 480px) {
+  body { font-size: 14px; }
+  .p-8 { padding: 1rem !important; }
+  .p-6 { padding: .9rem !important; }
+  .px-8 { padding-left: 1rem !important; padding-right: 1rem !important; }
+  .py-8 { padding-top: 1rem !important; padding-bottom: 1rem !important; }
+  .gap-8 { gap: 1rem !important; }
+  .gap-6 { gap: .8rem !important; }
+
+  /* Full-width action buttons are easier for counter staff. */
+  .mobile-full, .w-full-mobile { width: 100% !important; }
+
+  /* Prevent huge POS item cards. */
+  .menu-item, .food-item, .medicine-item, .order-card {
+    min-width: 0 !important;
+  }
+
+  /* Horizontal category chips stay on one line and scroll. */
+  .category-row, .category-tabs, .menu-categories {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    max-width: 100% !important;
+  }
+  .category-row > *, .category-tabs > *, .menu-categories > * {
+    flex: 0 0 auto !important;
+  }
+}
+
+/* iOS/Android keyboard: focused controls remain visible without widening page. */
+@supports (height: 100dvh) {
+  .modal-content, [role="dialog"] > div {
+    max-height: calc(100dvh - 24px) !important;
+  }
+}
+
+</style>
 </head>
 <body class="theme-purple bg-slate-100 text-slate-800 min-h-screen flex flex-col items-center justify-between antialiased selection:bg-purple-500 selection:text-white pb-6">
 
@@ -437,23 +608,7 @@
         </button>
       </div>
 
-      <nav class="p-4 space-y-2">
-        <button type="button" id="openMasterInventoryModalBtn" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-2xl transition text-left">
-          <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-          Item & Stock Configurator
-        </button>
-        <button type="button" id="openRestaurantDrawerBtn" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-2xl transition text-left">
-          <span class="text-lg">🍽️</span> Restaurant / Food Court POS
-        </button>
-        <button type="button" id="openLedgerModalBtn" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-2xl transition text-left">
-          <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-          Daily Sales & History
-        </button>
 
-        <button type="button" id="openBikeServiceDrawerBtn" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-2xl transition text-left">
-          <span class="text-xl">🏍️</span> Bike Service Management
-        </button>
-      </nav>
     </div>
 
     <div class="p-4 border-t border-slate-100 text-xs text-slate-400 text-center font-medium">
@@ -1218,6 +1373,171 @@
     </div>
   </div>
 
+  <!-- FULL-SCREEN MODAL: My Pharmacy -->
+
+  <!-- FULL-SCREEN MODAL: My Pharmacy -->
+  <div id="pharmacyModalOverlay" class="fixed inset-0 bg-slate-900 z-[85] hidden flex flex-col h-full w-full overflow-hidden">
+    <div class="brand-gradient p-4 sm:p-5 text-white flex items-center justify-between shrink-0 shadow-lg">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 bg-white/15 rounded-xl flex items-center justify-center text-xl shrink-0">💊</div>
+        <div class="min-w-0">
+          <h3 class="font-extrabold text-base sm:text-lg leading-none">My Pharmacy</h3>
+          <p class="text-[11px] text-white/70 mt-1">Simple Medicine Stock & Inventory</p>
+        </div>
+      </div>
+      <button type="button" id="closePharmacyBtn" class="text-white/80 hover:text-white p-2 rounded-xl bg-white/10 hover:bg-white/20 transition flex items-center gap-1 text-xs font-bold shrink-0"><span>Close</span><span class="text-xl leading-none">×</span></button>
+    </div>
+
+    <div class="grow bg-slate-100 p-3 sm:p-5 overflow-y-auto">
+      <div class="max-w-6xl mx-auto space-y-3 pb-20">
+        <div class="bg-white rounded-2xl border p-3 sm:p-4">
+          <button type="button" id="phCounterSaleBtn" class="w-full bg-emerald-600 text-white rounded-xl py-3.5 font-black text-sm shadow-sm">🧾 Counter Sale / Billing</button>
+          <p class="text-[10px] text-slate-500 mt-2 text-center">Search medicine → Add → Payment → Complete Sale</p>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+          <div class="bg-white rounded-2xl border p-3"><div class="text-[10px] font-black text-slate-500 uppercase">Medicines</div><div id="phStatMedicines" class="text-2xl font-black text-slate-800">0</div></div>
+          <div class="bg-white rounded-2xl border p-3"><div class="text-[10px] font-black text-slate-500 uppercase">Stock Qty</div><div id="phStatQty" class="text-2xl font-black text-slate-800">0</div></div>
+          <div class="bg-white rounded-2xl border p-3"><div class="text-[10px] font-black text-amber-600 uppercase">Low Stock</div><div id="phStatLow" class="text-2xl font-black text-amber-600">0</div></div>
+          <div class="bg-white rounded-2xl border p-3"><div class="text-[10px] font-black text-red-600 uppercase">Out of Stock</div><div id="phStatOut" class="text-2xl font-black text-red-600">0</div></div>
+          <div class="bg-white rounded-2xl border p-3"><div class="text-[10px] font-black text-orange-600 uppercase">Expiring Soon</div><div id="phStatSoon" class="text-2xl font-black text-orange-600">0</div></div>
+          <div class="bg-white rounded-2xl border p-3" style="display:none !important;"><div class="text-[10px] font-black text-purple-700 uppercase">Stock Value</div><div id="phStatValue" class="text-2xl font-black text-purple-700">₹0</div></div>
+        </div>
+
+        <div class="bg-white rounded-2xl border p-3 sm:p-4 space-y-3">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <button type="button" id="phAddBtn" class="brand-bg text-white rounded-xl py-3 font-black text-xs">＋ Add Medicine</button>
+            <button type="button" id="phStockInBtn" class="bg-emerald-600 text-white rounded-xl py-3 font-black text-xs">＋ Add Stock</button>
+            <button type="button" id="phAdjustBtn" class="bg-blue-600 text-white rounded-xl py-3 font-black text-xs">↕ Stock Adjustment</button>
+            <button type="button" id="phExpiryBtn" class="bg-orange-500 text-white rounded-xl py-3 font-black text-xs">⏰ Expiry</button>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+            <input id="phSearch" class="px-3 py-3 rounded-xl border bg-slate-50 text-sm" placeholder="Search medicine / barcode / batch / generic">
+            <select id="phCategoryFilter" class="px-3 py-3 rounded-xl border bg-slate-50 text-sm"><option value="">All Categories</option></select>
+            <select id="phSupplierFilter" class="px-3 py-3 rounded-xl border bg-slate-50 text-sm"><option value="">All Suppliers</option></select>
+            <select id="phRackFilter" class="px-3 py-3 rounded-xl border bg-slate-50 text-sm"><option value="">All Racks / Shelves</option></select>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <select id="phStatusFilter" class="px-3 py-2.5 rounded-xl border bg-slate-50 text-xs font-bold"><option value="">All Stock</option><option value="low">Low Stock</option><option value="out">Out of Stock</option><option value="soon">Expiring Soon</option><option value="expired">Expired</option></select>
+            <select id="phSort" class="px-3 py-2.5 rounded-xl border bg-slate-50 text-xs font-bold"><option value="name">Sort: Name</option><option value="qty">Sort: Quantity</option><option value="expiry">Sort: Expiry</option><option value="price">Sort: Selling Price</option></select>
+            <button type="button" id="phScanBtn" class="bg-slate-800 text-white rounded-xl py-2.5 font-black text-xs">▣ Scan Barcode</button>
+            <button type="button" id="phHistoryBtn" class="bg-slate-100 text-slate-800 border rounded-xl py-2.5 font-black text-xs">📋 Stock History</button>
+          </div>
+        </div>
+
+        <div id="phQuickAlerts" class="grid grid-cols-1 sm:grid-cols-3 gap-2"></div>
+        <div class="bg-white rounded-2xl border overflow-hidden">
+          <div class="p-3 border-b flex items-center justify-between"><div><h4 class="font-black text-sm">Medicine Stock</h4><p class="text-[10px] text-slate-500">Tap a medicine to edit. Stock changes are recorded automatically.</p></div><span id="phResultCount" class="text-[10px] font-black text-slate-500">0 items</span></div>
+          <div id="phMedicineList" class="divide-y"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHARMACY COUNTER SALE -->
+    <div id="phCounterOverlay" class="fixed inset-0 bg-slate-950 z-[102] hidden flex-col h-full w-full overflow-hidden">
+      <div class="brand-gradient p-4 text-white flex items-center justify-between shrink-0">
+        <div><h3 class="font-black text-lg">🧾 Counter Sale</h3><p class="text-[10px] text-white/70">Search medicine → Add → Payment → Complete Sale</p></div>
+        <button type="button" id="phCounterClose" class="px-3 py-2 bg-white/10 rounded-xl text-xs font-bold">Close ✕</button>
+      </div>
+      <div class="grow overflow-y-auto bg-slate-100 p-3 sm:p-5">
+        <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-[1.2fr_.8fr] gap-3 pb-20">
+          <div class="space-y-3">
+            <div class="bg-white rounded-2xl border p-3 space-y-2">
+              <div class="flex gap-2"><input id="phSaleSearch" class="flex-1 px-3 py-3 rounded-xl border text-sm" placeholder="Search medicine / generic / barcode / batch"><button type="button" id="phSaleScan" class="bg-slate-800 text-white rounded-xl px-4 text-xs font-black">▣ Scan</button></div>
+              <div id="phSaleResults" class="space-y-2 max-h-72 overflow-y-auto"></div>
+            </div>
+            <div class="bg-white rounded-2xl border overflow-hidden">
+              <div class="p-3 border-b flex justify-between"><b class="text-sm">Current Bill</b><span id="phSaleBillNo" class="text-[10px] font-bold text-slate-500"></span></div>
+              <div id="phSaleCart" class="divide-y"></div>
+              <div id="phSaleEmpty" class="p-8 text-center text-sm text-slate-400">No medicines added yet.</div>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <div class="bg-white rounded-2xl border p-3 space-y-2">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2"><input id="phSaleCustomer" class="px-3 py-3 rounded-xl border" placeholder="Customer name (optional)"><input id="phSalePhone" inputmode="tel" class="px-3 py-3 rounded-xl border" placeholder="Phone (optional)"></div>
+              <div class="grid grid-cols-2 gap-2"><input id="phSaleDiscount" type="number" min="0" step="0.01" value="0" class="px-3 py-3 rounded-xl border" placeholder="Discount ₹"><input id="phSaleGst" type="number" min="0" step="0.01" value="0" class="px-3 py-3 rounded-xl border" placeholder="GST %"></div>
+              <div class="border-t pt-3 space-y-1 text-sm" id="phSaleTotals"></div>
+            </div>
+            <div class="bg-white rounded-2xl border p-3 space-y-2">
+              <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2">
+                <div class="flex justify-between items-center"><span class="text-xs font-black text-amber-800">💵 Cash Paid</span><input id="phSaleCash" type="number" min="0" step="0.01" inputmode="decimal" value="0" class="w-32 px-3 py-2 rounded-lg border border-amber-300 bg-white text-right font-bold" placeholder="0.00"></div>
+                <div class="flex justify-between items-center text-xs"><span class="font-bold text-slate-500">📱 Remaining UPI</span><b id="phSaleUpiRemaining" class="text-emerald-700">₹0.00</b></div>
+                <div class="text-[10px] text-slate-500">Pay the remaining amount by UPI using the QR on the bill.</div>
+              </div>
+              <input id="phSalePaid" type="hidden" value="0">
+              <button type="button" id="phCompleteSale" class="w-full bg-emerald-600 text-white rounded-xl py-4 font-black text-sm">✓ COMPLETE SALE</button>
+              <button type="button" id="phPrintLastSale" class="w-full bg-slate-800 text-white rounded-xl py-3 font-black text-xs">🖨️ Reprint Last Bill</button>
+            </div>
+            <div class="grid grid-cols-2 gap-2"><button type="button" id="phSalesReport" class="bg-white border rounded-xl py-3 font-black text-xs">📊 Sales Reports</button><button type="button" id="phReturnsBtn" class="bg-white border rounded-xl py-3 font-black text-xs">↩️ Sales Returns</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SALE INVOICE -->
+    <div id="phSaleInvoiceOverlay" class="fixed inset-0 bg-slate-950/80 z-[160] hidden items-center justify-center p-3">
+      <div class="bg-white w-full max-w-3xl max-h-[94vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+        <div class="brand-gradient text-white p-4 flex justify-between"><div><b>Pharmacy Bill</b><div id="phSaleInvoiceNo" class="text-[10px] text-white/70"></div></div><button type="button" id="phSaleInvoiceClose" class="px-3 py-2 bg-white/10 rounded-xl text-xs font-bold">Close ✕</button></div>
+        <div id="phSaleInvoiceBody" class="p-5 overflow-y-auto"></div>
+        <div class="p-3 border-t flex flex-wrap gap-2"><button id="phSaleInvoicePrint" class="bg-slate-800 text-white px-4 py-3 rounded-xl font-black text-xs">🖨️ Print Bill</button><button id="phSaleInvoiceQr" class="bg-emerald-600 text-white px-4 py-3 rounded-xl font-black text-xs">📲 Generate QR</button><button id="phSaleInvoiceClose2" class="bg-slate-100 px-4 py-3 rounded-xl font-black text-xs">Close</button></div>
+      </div>
+    </div>
+
+    <!-- SALES RETURN / REPORTS -->
+    <div id="phSalesExtraOverlay" class="fixed inset-0 bg-slate-950/80 z-[160] hidden items-center justify-center p-3">
+      <div class="bg-white w-full max-w-3xl max-h-[94vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+        <div class="brand-gradient text-white p-4 flex justify-between"><b id="phExtraTitle">Sales Reports</b><button id="phExtraClose" class="px-3 py-2 bg-white/10 rounded-xl text-xs font-bold">Close ✕</button></div>
+        <div id="phExtraBody" class="p-4 overflow-y-auto"></div>
+      </div>
+    </div>
+
+    <!-- Medicine form -->
+    <div id="phMedicineFormOverlay" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-[100] hidden items-center justify-center p-3">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto">
+        <div class="brand-gradient text-white p-4 flex items-center justify-between"><div><h4 id="phFormTitle" class="font-black">Add Medicine</h4><p class="text-[10px] text-white/70">Enter medicine details once, then manage stock separately.</p></div><button type="button" id="phMedicineFormClose" class="text-white text-xl">×</button></div>
+        <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <input id="phId" type="hidden">
+          <input id="phName" class="px-3 py-3 rounded-xl border" placeholder="Medicine name *">
+          <input id="phGeneric" class="px-3 py-3 rounded-xl border" placeholder="Generic name">
+          <input id="phBrand" class="px-3 py-3 rounded-xl border" placeholder="Brand">
+          <input id="phCategory" class="px-3 py-3 rounded-xl border" placeholder="Category (e.g. Antibiotic)">
+          <input id="phBatch" class="px-3 py-3 rounded-xl border" placeholder="Batch number">
+          <input id="phBarcode" class="px-3 py-3 rounded-xl border" placeholder="Barcode">
+          <input id="phExpiry" type="date" class="px-3 py-3 rounded-xl border">
+          <input id="phPurchase" type="number" min="0" step="0.01" class="px-3 py-3 rounded-xl border" placeholder="Purchase price">
+          <input id="phSelling" type="number" min="0" step="0.01" class="px-3 py-3 rounded-xl border" placeholder="Selling price">
+          <input id="phStock" type="number" min="0" step="1" class="px-3 py-3 rounded-xl border" placeholder="Current stock">
+          <input id="phMin" type="number" min="0" step="1" class="px-3 py-3 rounded-xl border" placeholder="Minimum stock level">
+          <input id="phSupplier" class="px-3 py-3 rounded-xl border" placeholder="Supplier">
+          <input id="phRack" class="px-3 py-3 rounded-xl border" placeholder="Rack / Shelf">
+          <div class="sm:col-span-2 flex gap-2 pt-2"><button type="button" id="phGenerateBarcode" class="bg-slate-800 text-white px-4 py-3 rounded-xl font-black text-xs">Generate Barcode</button><div id="phBarcodePreview" class="flex-1 min-h-11 rounded-xl border bg-slate-50 flex items-center justify-center text-xs font-mono"></div></div>
+          <div class="sm:col-span-2 grid grid-cols-2 gap-2 pt-2"><button type="button" id="phMedicineSave" class="brand-bg text-white py-3 rounded-xl font-black text-xs">Save Medicine</button><button type="button" id="phMedicineCancel" class="bg-slate-100 text-slate-700 py-3 rounded-xl font-black text-xs">Cancel</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stock action form -->
+    <div id="phStockActionOverlay" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-[100] hidden items-center justify-center p-3">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
+        <div class="brand-gradient text-white p-4 flex items-center justify-between"><div><h4 id="phActionTitle" class="font-black">Add Stock</h4><p id="phActionHelp" class="text-[10px] text-white/70">Increase the medicine quantity.</p></div><button type="button" id="phStockActionClose" class="text-white text-xl">×</button></div>
+        <div class="p-4 space-y-2"><select id="phActionMedicine" class="w-full px-3 py-3 rounded-xl border"></select><select id="phActionType" class="w-full px-3 py-3 rounded-xl border"><option value="in">Add Stock</option><option value="adjust">Stock Adjustment</option><option value="transfer">Stock Transfer</option><option value="damaged">Damaged / Expired</option><option value="return">Stock Return</option></select><input id="phActionQty" type="number" min="1" step="1" class="w-full px-3 py-3 rounded-xl border" placeholder="Quantity"><input id="phActionToRack" class="w-full px-3 py-3 rounded-xl border hidden" placeholder="Transfer to Rack / Shelf"><input id="phActionNote" class="w-full px-3 py-3 rounded-xl border" placeholder="Note / reason"><div class="grid grid-cols-2 gap-2 pt-2"><button type="button" id="phActionSave" class="brand-bg text-white py-3 rounded-xl font-black text-xs">Save Stock Change</button><button type="button" id="phActionCancel" class="bg-slate-100 text-slate-700 py-3 rounded-xl font-black text-xs">Cancel</button></div></div>
+      </div>
+    </div>
+
+    <!-- In-app confirm -->
+    <div id="phDeleteConfirmOverlay" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-[110] hidden items-center justify-center p-3">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5"><div class="text-3xl mb-2">🗑️</div><h4 class="font-black text-lg">Delete medicine?</h4><p id="phDeleteText" class="text-xs text-slate-500 mt-1">This will remove the medicine record.</p><div class="grid grid-cols-2 gap-2 mt-4"><button type="button" id="phDeleteYes" class="bg-red-600 text-white py-3 rounded-xl font-black text-xs">Delete</button><button type="button" id="phDeleteNo" class="bg-slate-100 text-slate-700 py-3 rounded-xl font-black text-xs">Cancel</button></div></div>
+    </div>
+
+    <!-- History -->
+    <div id="phHistoryOverlay" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-[100] hidden items-center justify-center p-3">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto"><div class="brand-gradient text-white p-4 flex items-center justify-between"><div><h4 class="font-black">Stock History</h4><p class="text-[10px] text-white/70">Every stock change is recorded here.</p></div><button type="button" id="phHistoryClose" class="text-white text-xl">×</button></div><div id="phHistoryList" class="p-3 space-y-2"></div></div>
+    </div>
+
+    <!-- Barcode scanner -->
+    <div id="phScannerOverlay" class="fixed inset-0 bg-slate-950/90 z-[110] hidden items-center justify-center p-3"><div class="bg-white rounded-2xl w-full max-w-sm p-5"><div class="flex items-center justify-between"><h4 class="font-black">Scan Barcode</h4><button type="button" id="phScannerClose" class="text-xl">×</button></div><p id="phScannerHelp" class="text-xs text-slate-500 mt-2">Camera scanning is supported when your browser provides BarcodeDetector. You can also enter the barcode below.</p><input id="phScannerManual" class="w-full px-3 py-3 rounded-xl border mt-3" placeholder="Enter barcode"><button type="button" id="phScannerFind" class="w-full brand-bg text-white py-3 rounded-xl font-black text-xs mt-2">Find Medicine</button><video id="phScannerVideo" class="w-full rounded-xl mt-3 hidden" playsinline></video></div></div>
+  </div>
+
   <!-- FULL-SCREEN MODAL: BIKE SERVICE MANAGEMENT -->
   <div id="bikeServiceModalOverlay" class="fixed inset-0 bg-slate-900 z-[70] hidden flex flex-col h-full w-full overflow-hidden">
     <div class="brand-gradient p-4 sm:p-5 text-white flex items-center justify-between shrink-0 shadow-lg bike-no-print">
@@ -1483,6 +1803,18 @@
         </div>
         <div class="text-white/60 text-xs font-mono px-2">⠿ </div>
       </button>
+      <!-- My Pharmacy -->
+      <button type="button" id="gridPharmacyBtn" class="reorder-btn group flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-700 text-white shadow-lg shadow-violet-500/20 hover:scale-[1.01] active:scale-[0.99] transition duration-200 text-left relative overflow-hidden w-full cursor-grab active:cursor-grabbing">
+        <div class="flex items-center">
+          <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center mr-4 shrink-0 text-xl">💊</div>
+          <div class="flex flex-col">
+            <span class="font-extrabold text-sm leading-tight">My Pharmacy</span>
+            <span class="text-[10px] text-violet-100 mt-0.5 font-medium">Medicine Stock & Expiry</span>
+          </div>
+        </div>
+        <div class="text-white/60 text-xs font-mono px-2">⠿</div>
+      </button>
+
       <!-- Bike Service Management -->
       <button type="button" id="gridBikeServiceBtn" class="reorder-btn group flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-700 text-white shadow-lg shadow-cyan-500/20 hover:scale-[1.01] active:scale-[0.99] transition duration-200 text-left relative overflow-hidden w-full cursor-grab active:cursor-grabbing">
         <div class="flex items-center">
@@ -1591,7 +1923,8 @@
       'gridPosBtn': true,
       'gridKdsBtn': true,
       'gridRestaurantBtn': true,
-      'gridBikeServiceBtn': true
+      'gridBikeServiceBtn': true,
+      'gridPharmacyBtn': true
     };
 
     const buttonNames = {
@@ -1601,7 +1934,8 @@
       'gridPosBtn': 'POS Checkout',
       'gridKdsBtn': 'Kitchen System (KDS)',
       'gridRestaurantBtn': 'Restaurant / Food Court POS',
-      'gridBikeServiceBtn': 'Bike Service Management'
+      'gridBikeServiceBtn': 'Bike Service Management',
+      'gridPharmacyBtn': 'My Pharmacy'
     };
 
     function getVisibilityState() {
@@ -2726,7 +3060,11 @@
       unsubscribeKDS = window.onSnapshot(q, (snapshot) => {
         let cloudOrders = [];
         snapshot.forEach(doc => {
-          cloudOrders.push({ ...doc.data(), firestoreId: doc.id });
+          const data = doc.data();
+          // Cancelled orders must disappear from the live KDS immediately.
+          // They remain available in the Restaurant POS Cancelled Orders history.
+          if (data.status === 'cancelled') return;
+          cloudOrders.push({ ...data, firestoreId: doc.id });
         });
         cloudOrders.sort((a, b) => a.timestamp - b.timestamp);
         const hadPending=cloudOrders.some(o=>o.restaurant&&o.status==='pending');
@@ -2737,6 +3075,8 @@
 
     function renderKDS(orders) {
       const container = document.getElementById('kdsOrdersContainer');
+      // Never display cancelled orders on the live kitchen screen.
+      orders = (orders || []).filter(order => order.status !== 'cancelled');
       if (orders.length === 0) { container.innerHTML = `<div class="col-span-full p-8 text-center text-slate-500 font-bold bg-white rounded-2xl border border-slate-200">No active orders in kitchen.</div>`; return; }
       container.innerHTML = orders.map(order => {
         const isRestaurant=!!order.restaurant;
@@ -3440,6 +3780,7 @@
   seed();
   function openRest(){closeDrawer();renderAll();toggleModal($('restaurantModalOverlay'),true)}
   function closeRest(){toggleModal($('restaurantModalOverlay'),false);toggleModal($('restaurantBillOverlay'),false)}
+
   $('gridRestaurantBtn').addEventListener('click',openRest);$('openRestaurantDrawerBtn').addEventListener('click',openRest);$('closeRestaurantBtn').addEventListener('click',closeRest);
   document.querySelectorAll('.restaurant-tab').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
   function showTab(tab){document.querySelectorAll('.restaurant-panel').forEach(x=>x.classList.add('hidden'));$('restaurant'+tab[0].toUpperCase()+tab.slice(1)+'Tab').classList.remove('hidden');document.querySelectorAll('.restaurant-tab').forEach(b=>{b.classList.toggle('brand-bg',b.dataset.tab===tab);b.classList.toggle('text-white',b.dataset.tab===tab);b.classList.toggle('bg-slate-100',b.dataset.tab!==tab);b.classList.toggle('text-slate-700',b.dataset.tab!==tab)});if(tab==='orders')renderOrders();if(tab==='cancelled')renderCancelledOrders();if(tab==='menu')renderMenuList();if(tab==='tables')renderTables()}
@@ -3632,7 +3973,7 @@ function categories(){const cats=['All',...allRestaurantCategories()];$('restCat
     if(o.table){const t=tables.find(x=>x.id===o.table);if(t){t.status='Available';save(K.tables,tables)}}
     const live=localLiveOrders.find(x=>x.id===orderId||x.restaurantOrderId===orderId);
     if(live&&currentUserUid&&window.firebaseDb&&live.firestoreId){
-      try{await window.updateDoc(window.doc(window.firebaseDb,'live_orders',currentUserUid,'orders',live.firestoreId),{status:'cancelled'});}catch(e){console.error('Could not sync cancellation to KDS:',e)}
+      try{await window.updateDoc(window.doc(window.firebaseDb,'live_orders',currentUserUid,'orders',live.firestoreId),{status:'cancelled',cancelledAt:new Date().toISOString()});}catch(e){console.error('Could not sync cancellation to KDS:',e)}
     }
     localLiveOrders=localLiveOrders.filter(x=>x.id!==orderId&&x.restaurantOrderId!==orderId);
     localStorage.setItem('localLiveOrders',JSON.stringify(localLiveOrders));
@@ -3720,5 +4061,276 @@ $('menuSave').addEventListener('click',()=>{const name=$('menuName').value.trim(
 })();
 </script>
 
+
+<!-- MY PHARMACY MODULE -->
+<script>
+
+(function(){
+  const $=id=>document.getElementById(id);
+  const money=n=>'₹'+Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const read=(k,d=[])=>{try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(d))}catch(e){return d}};
+  const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+  const toast=(msg,ok=true)=>{if(typeof window.showToast==='function'){window.showToast(msg,ok);return}let t=document.getElementById('phToast');if(!t){t=document.createElement('div');t.id='phToast';t.className='fixed bottom-5 left-1/2 -translate-x-1/2 z-[200] px-4 py-3 rounded-xl text-white text-xs font-black shadow-2xl';document.body.appendChild(t)}t.className='fixed bottom-5 left-1/2 -translate-x-1/2 z-[200] px-4 py-3 rounded-xl text-white text-xs font-black shadow-2xl '+(ok?'bg-emerald-600':'bg-red-600');t.textContent=msg;t.classList.remove('hidden');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.add('hidden'),2200)};
+  const KEY='pharmacyMedicines', HIST='pharmacyStockHistory';
+  let medicines=read(KEY,[]), history=read(HIST,[]), deleteId=null, actionMode='in';
+
+  // Keep the Pharmacy counter and the existing Item & Stock inventory connected.
+  // The pharmacy module uses pharmacyMedicines as its working list, while
+  // inventoryMasterList is the existing app-wide stock list.  These helpers
+  // bridge both lists so staff never see two different stock sources.
+  function masterInventory(){
+    return read('inventoryMasterList',[]);
+  }
+  function masterKey(x){
+    if(x.pharmacyBridgeId) return String(x.pharmacyBridgeId);
+    const raw=String(x.id||x.barcode||x.name||x.rackSrNo||'').trim().toLowerCase();
+    let h=0;for(let i=0;i<raw.length;i++)h=((h<<5)-h+raw.charCodeAt(i))|0;
+    x.pharmacyBridgeId='PHM-'+Math.abs(h);
+    return x.pharmacyBridgeId;
+  }
+  function syncFromMaster(){
+    const master=masterInventory();
+    if(!Array.isArray(master) || !master.length) return false;
+    let changed=false;
+    master.forEach((mi)=>{
+      const key=masterKey(mi);
+      if(!key || !String(mi.name||'').trim()) return;
+      let m=medicines.find(x=>x.masterKey===key);
+      if(!m){
+        const barcode=String(mi.barcode||'').trim();
+        m=(barcode && medicines.find(x=>x.barcode===barcode)) ||
+          medicines.find(x=>String(x.name||'').trim().toLowerCase()===String(mi.name||'').trim().toLowerCase() && !x.batch);
+      }
+      if(m){
+        m.masterKey=key;
+        m.name=String(mi.name||m.name||'').trim();
+        if(mi.rate!==undefined) m.selling=Number(mi.rate)||0;
+        if(mi.stock!==undefined) m.stock=Math.max(0,Number(mi.stock)||0);
+        if(mi.rackSrNo!==undefined) m.rack=String(mi.rackSrNo||m.rack||'');
+        if(mi.barcode) m.barcode=String(mi.barcode);
+        changed=true;
+      }else{
+        medicines.unshift({
+          id:'PH-MASTER-'+key.replace(/[^a-z0-9]+/g,'-').slice(0,60),
+          masterKey:key,
+          name:String(mi.name||'').trim(),
+          generic:'',
+          brand:'',
+          category:'General',
+          batch:String(mi.batch||''),
+          barcode:String(mi.barcode||''),
+          expiryDate:String(mi.expiryDate||''),
+          purchase:Number(mi.purchase||0),
+          selling:Number(mi.rate||mi.selling||0),
+          stock:Math.max(0,Number(mi.stock)||0),
+          minStock:Math.max(0,Number(mi.minStock||0)),
+          supplier:String(mi.supplier||''),
+          rack:String(mi.rackSrNo||mi.rack||''),
+          updatedAt:new Date().toISOString()
+        });
+        changed=true;
+      }
+    });
+    if(changed) save(KEY,medicines);
+    return changed;
+  }
+  function syncToMaster(m){
+    if(!m || !m.masterKey) return;
+    const master=masterInventory();
+    const mi=master.find(x=>masterKey(x)===m.masterKey);
+    if(!mi) return;
+    mi.name=m.name;
+    mi.rate=Number(m.selling||0);
+    mi.stock=Math.max(0,Number(m.stock||0));
+    mi.rackSrNo=m.rack||mi.rackSrNo||'';
+    if(m.barcode) mi.barcode=m.barcode;
+    if(m.batch) mi.batch=m.batch;
+    if(m.expiryDate) mi.expiryDate=m.expiryDate;
+    localStorage.setItem('inventoryMasterList',JSON.stringify(master));
+  }
+  function syncAllToMaster(){
+    medicines.forEach(syncToMaster);
+  }
+
+  const today=()=>new Date();
+  const daysUntil=d=>{if(!d)return Infinity;return Math.ceil((new Date(d+'T23:59:59')-today())/86400000)};
+  const isExpired=m=>daysUntil(m.expiryDate)<0;
+  const isSoon=m=>{const x=daysUntil(m.expiryDate);return x>=0&&x<=90};
+  const isLow=m=>Number(m.stock)<=Number(m.minStock);
+  const isOut=m=>Number(m.stock)<=0;
+  function open(){ $('pharmacyModalOverlay').classList.remove('hidden'); $('pharmacyModalOverlay').classList.add('flex'); document.body.classList.add('overflow-hidden'); renderAll(); }
+  function close(){['phMedicineFormOverlay','phStockActionOverlay','phDeleteConfirmOverlay','phHistoryOverlay','phScannerOverlay','phCounterOverlay','phSaleInvoiceOverlay','phSalesExtraOverlay'].forEach(id=>{$(id).classList.add('hidden');$(id).classList.remove('flex')});$('pharmacyModalOverlay').classList.add('hidden');$('pharmacyModalOverlay').classList.remove('flex');document.body.classList.remove('overflow-hidden'); stopScan();}
+  function renderStats(){
+    $('phStatMedicines').textContent=medicines.length;
+    $('phStatQty').textContent=medicines.reduce((a,m)=>a+Number(m.stock||0),0).toLocaleString('en-IN');
+    $('phStatLow').textContent=medicines.filter(m=>isLow(m)&&!isOut(m)).length;
+    $('phStatOut').textContent=medicines.filter(isOut).length;
+    $('phStatSoon').textContent=medicines.filter(isSoon).length;
+    $('phStatValue').textContent=money(medicines.reduce((a,m)=>a+Number(m.stock||0)*Number(m.purchase||0),0));
+  }
+  function fillFilters(){
+    const cats=[...new Set(medicines.map(m=>m.category).filter(Boolean))].sort(); const sups=[...new Set(medicines.map(m=>m.supplier).filter(Boolean))].sort(); const racks=[...new Set(medicines.map(m=>m.rack).filter(Boolean))].sort();
+    [['phCategoryFilter',cats],['phSupplierFilter',sups],['phRackFilter',racks]].forEach(([id,arr])=>{const el=$(id),old=el.value;const label=id==='phCategoryFilter'?'All Categories':id==='phSupplierFilter'?'All Suppliers':'All Racks / Shelves';el.innerHTML='<option value="">'+label+'</option>'+arr.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');if(arr.includes(old))el.value=old});
+  }
+  function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  function renderAlerts(){
+    const low=medicines.filter(m=>isLow(m)&&!isOut(m)), out=medicines.filter(isOut), exp=medicines.filter(isSoon||isExpired);
+    $('phQuickAlerts').innerHTML=`<button type="button" data-ph-alert="low" class="text-left bg-amber-50 border border-amber-200 rounded-2xl p-3"><b class="text-amber-800 text-xs">⚠️ Low Stock</b><div class="text-[10px] text-amber-700 mt-1">${low.length} medicines need stock</div></button><button type="button" data-ph-alert="out" class="text-left bg-red-50 border border-red-200 rounded-2xl p-3"><b class="text-red-800 text-xs">⛔ Out of Stock</b><div class="text-[10px] text-red-700 mt-1">${out.length} medicines unavailable</div></button><button type="button" data-ph-alert="soon" class="text-left bg-orange-50 border border-orange-200 rounded-2xl p-3"><b class="text-orange-800 text-xs">⏰ Expiry</b><div class="text-[10px] text-orange-700 mt-1">${exp.length} medicines expired / expiring within 90 days</div></button>`;
+    $('phQuickAlerts').querySelectorAll('[data-ph-alert]').forEach(b=>b.addEventListener('click',()=>{$('phStatusFilter').value=b.dataset.phAlert==='soon'?'soon':b.dataset.phAlert;renderList()}));
+  }
+  function renderList(){
+    const q=($('phSearch').value||'').trim().toLowerCase(), cat=$('phCategoryFilter').value,sup=$('phSupplierFilter').value,rack=$('phRackFilter').value,status=$('phStatusFilter').value,sort=$('phSort').value;
+    let arr=medicines.filter(m=>{const hay=[m.name,m.generic,m.brand,m.batch,m.barcode].join(' ').toLowerCase();if(q&&!hay.includes(q))return false;if(cat&&m.category!==cat)return false;if(sup&&m.supplier!==sup)return false;if(rack&&m.rack!==rack)return false;if(status==='low'&&!isLow(m))return false;if(status==='out'&&!isOut(m))return false;if(status==='soon'&&!isSoon(m))return false;if(status==='expired'&&!isExpired(m))return false;return true});
+    arr.sort((a,b)=>sort==='qty'?Number(b.stock)-Number(a.stock):sort==='expiry'?String(a.expiryDate||'').localeCompare(String(b.expiryDate||'')):sort==='price'?Number(b.selling||0)-Number(a.selling||0):String(a.name).localeCompare(String(b.name)));
+    $('phResultCount').textContent=arr.length+' item'+(arr.length===1?'':'s');
+    $('phMedicineList').innerHTML=arr.length?arr.map(m=>{const expired=isExpired(m),soon=isSoon(m),low=isLow(m),out=isOut(m);const cls=expired?'bg-red-50':soon?'bg-orange-50':out?'bg-slate-50':low?'bg-amber-50':'bg-white';return `<div class="p-3 ${cls}"><div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2"><div class="min-w-0"><div class="flex items-center gap-2 flex-wrap"><b class="text-sm text-slate-800">${esc(m.name)}</b><span class="text-[9px] font-black px-2 py-1 rounded-full bg-slate-100 text-slate-600">${esc(m.category||'Uncategorized')}</span>${out?'<span class="text-[9px] font-black px-2 py-1 rounded-full bg-red-100 text-red-700">OUT</span>':low?'<span class="text-[9px] font-black px-2 py-1 rounded-full bg-amber-100 text-amber-700">LOW</span>':''}${expired?'<span class="text-[9px] font-black px-2 py-1 rounded-full bg-red-100 text-red-700">EXPIRED</span>':soon&&!expired?'<span class="text-[9px] font-black px-2 py-1 rounded-full bg-orange-100 text-orange-700">EXPIRING</span>':''}</div><div class="text-[10px] text-slate-500 mt-1">${esc(m.generic||'')} ${m.brand?'• '+esc(m.brand):''} • Batch ${esc(m.batch||'-')} • Barcode ${esc(m.barcode||'-')}</div><div class="text-[10px] text-slate-500">Rack: ${esc(m.rack||'-')} • Supplier: ${esc(m.supplier||'-')} • Expiry: ${esc(m.expiryDate||'-')}</div></div><div class="flex items-center gap-2 shrink-0"><div class="text-right mr-1"><div class="text-lg font-black text-slate-800">${Number(m.stock||0)}</div><div class="text-[9px] text-slate-500">Min ${Number(m.minStock||0)} • ${money(m.selling)}</div></div><button type="button" data-ph-action="${m.id}" class="bg-emerald-600 text-white px-2.5 py-2 rounded-lg text-[10px] font-black">Stock</button><button type="button" data-ph-edit="${m.id}" class="bg-slate-100 text-slate-700 px-2.5 py-2 rounded-lg text-[10px] font-black">Edit</button><button type="button" data-ph-delete="${m.id}" class="bg-red-50 text-red-600 px-2.5 py-2 rounded-lg text-[10px] font-black">Delete</button></div></div></div>`}).join(''):'<div class="p-8 text-center text-sm text-slate-400">No medicines found.</div>';
+    $('phMedicineList').querySelectorAll('[data-ph-action]').forEach(b=>b.addEventListener('click',()=>openAction(b.dataset.phAction)));
+    $('phMedicineList').querySelectorAll('[data-ph-edit]').forEach(b=>b.addEventListener('click',()=>editMedicine(b.dataset.phEdit)));
+    $('phMedicineList').querySelectorAll('[data-ph-delete]').forEach(b=>b.addEventListener('click',()=>askDelete(b.dataset.phDelete)));
+  }
+  function renderAll(){syncFromMaster();renderStats();fillFilters();renderAlerts();renderList();fillActionMedicine();}
+  function openForm(id=''){
+    $('phId').value=id; $('phFormTitle').textContent=id?'Edit Medicine':'Add Medicine';
+    const m=medicines.find(x=>x.id===id);
+    ['Name','Generic','Brand','Category','Batch','Barcode','Expiry','Purchase','Selling','Stock','Min','Supplier','Rack'].forEach(k=>{const el=$('ph'+k);if(el)el.value=m?m[{Name:'name',Generic:'generic',Brand:'brand',Category:'category',Batch:'batch',Barcode:'barcode',Expiry:'expiryDate',Purchase:'purchase',Selling:'selling',Stock:'stock',Min:'minStock',Supplier:'supplier',Rack:'rack'}[k]]||'':''});
+    $('phBarcodePreview').textContent=m&&m.barcode?'▌ '+m.barcode+' ▐':''; $('phMedicineFormOverlay').classList.remove('hidden');$('phMedicineFormOverlay').classList.add('flex');
+  }
+  function closeForm(){$('phMedicineFormOverlay').classList.add('hidden');$('phMedicineFormOverlay').classList.remove('flex')}
+  function editMedicine(id){openForm(id)}
+  function genBarcode(){const code='890'+Date.now().toString().slice(-9);$('phBarcode').value=code;$('phBarcodePreview').textContent='▌ '+code+' ▐'}
+  function saveMedicine(){
+    const name=$('phName').value.trim();if(!name){toast('Enter medicine name.',false);return}const id=$('phId').value||'PH-'+Date.now();const data={id,name,generic:$('phGeneric').value.trim(),brand:$('phBrand').value.trim(),category:$('phCategory').value.trim()||'General',batch:$('phBatch').value.trim(),barcode:$('phBarcode').value.trim(),expiryDate:$('phExpiry').value,purchase:Number($('phPurchase').value)||0,selling:Number($('phSelling').value)||0,stock:Math.max(0,Number($('phStock').value)||0),minStock:Math.max(0,Number($('phMin').value)||0),supplier:$('phSupplier').value.trim(),rack:$('phRack').value.trim(),updatedAt:new Date().toISOString()};
+    const existing=medicines.findIndex(m=>m.id===id);if(existing>=0){data.masterKey=medicines[existing].masterKey||'';medicines[existing]=data;syncToMaster(data)}else{const dup=medicines.find(m=>data.barcode&&m.barcode===data.barcode&&data.batch&&m.batch===data.batch);if(dup){dup.stock+=data.stock;Object.assign(dup,data,{stock:dup.stock});}else medicines.unshift(data)}save(KEY,medicines);closeForm();renderAll();toast('Medicine saved');
+  }
+  function fillActionMedicine(){const s=$('phActionMedicine');if(!s)return;s.innerHTML=medicines.map(m=>`<option value="${esc(m.id)}">${esc(m.name)} • Stock ${Number(m.stock||0)} • ${esc(m.batch||'-')}</option>`).join('');}
+  function openAction(id='',mode='in'){fillActionMedicine();if(id)$('phActionMedicine').value=id;actionMode=mode;$('phActionType').value=mode;$('phActionToRack').classList.toggle('hidden',mode!=='transfer');$('phActionTitle').textContent=mode==='in'?'Add Stock':mode==='adjust'?'Stock Adjustment':mode==='transfer'?'Stock Transfer':mode==='damaged'?'Damaged / Expired':'Stock Return';$('phActionHelp').textContent=mode==='in'?'Increase stock.':mode==='adjust'?'Use a positive or negative quantity.':mode==='transfer'?'Move the rack location.':mode==='damaged'?'Reduce stock for damaged or expired medicine.':'Reduce stock for supplier return.';$('phActionQty').value='';$('phActionNote').value='';$('phStockActionOverlay').classList.remove('hidden');$('phStockActionOverlay').classList.add('flex')}
+  function closeAction(){$('phStockActionOverlay').classList.add('hidden');$('phStockActionOverlay').classList.remove('flex')}
+  $('phActionType').addEventListener('change',e=>{actionMode=e.target.value;$('phActionToRack').classList.toggle('hidden',actionMode!=='transfer')});
+  function saveAction(){
+    const id=$('phActionMedicine').value,m=medicines.find(x=>x.id===id),type=$('phActionType').value,raw=Number($('phActionQty').value);if(!m||!raw){toast('Select medicine and enter quantity.',false);return}let qty=Math.abs(raw),before=Number(m.stock||0),after=before;
+    if(type==='in')after=before+qty; else if(type==='adjust')after=Math.max(0,before+Number($('phActionQty').value)); else if(type==='transfer'){if($('phActionToRack').value.trim())m.rack=$('phActionToRack').value.trim();else{toast('Enter destination rack.',false);return}} else after=Math.max(0,before-qty);
+    m.stock=after;m.updatedAt=new Date().toISOString();syncToMaster(m);if(type!=='transfer')history.unshift({id:'PHH-'+Date.now(),medicineId:m.id,medicine:m.name,type,quantity:qty,before,after,note:$('phActionNote').value.trim(),rack:m.rack,date:new Date().toISOString()});save(KEY,medicines);save(HIST,history);closeAction();renderAll();toast(type==='in'?'Stock added':type==='transfer'?'Stock transferred':'Stock updated');
+  }
+  function askDelete(id){deleteId=id;const m=medicines.find(x=>x.id===id);$('phDeleteText').textContent='Delete '+(m?m.name:'this medicine')+'? Stock history will remain.';$('phDeleteConfirmOverlay').classList.remove('hidden');$('phDeleteConfirmOverlay').classList.add('flex')}
+  function closeDelete(){$('phDeleteConfirmOverlay').classList.add('hidden');$('phDeleteConfirmOverlay').classList.remove('flex');deleteId=null}
+  function deleteMedicine(){if(!deleteId)return;medicines=medicines.filter(m=>m.id!==deleteId);save(KEY,medicines);closeDelete();renderAll();toast('Medicine deleted')}
+  function renderHistory(){const arr=history.slice(0,200);$('phHistoryList').innerHTML=arr.length?arr.map(h=>`<div class="border rounded-xl p-3 bg-slate-50"><div class="flex justify-between gap-2"><b class="text-xs">${esc(h.medicine)}</b><span class="text-[9px] font-black uppercase">${esc(h.type)}</span></div><div class="text-[10px] text-slate-500 mt-1">${h.before} → ${h.after} • Qty ${h.quantity} • ${esc(h.note||'No note')}</div><div class="text-[9px] text-slate-400 mt-1">${new Date(h.date).toLocaleString('en-IN')}</div></div>`).join(''):'<div class="p-8 text-center text-sm text-slate-400">No stock history yet.</div>'}
+  async function startScan(){
+    $('phScannerOverlay').classList.remove('hidden');$('phScannerOverlay').classList.add('flex');
+    if('BarcodeDetector' in window && navigator.mediaDevices?.getUserMedia){try{const detector=new BarcodeDetector();const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});const video=$('phScannerVideo');video.srcObject=stream;video.classList.remove('hidden');await video.play();const tick=async()=>{if(video.srcObject){try{const codes=await detector.detect(video);if(codes[0]){$('phScannerManual').value=codes[0].rawValue;findBarcode();return}}catch(e){}requestAnimationFrame(tick)}};tick()}catch(e){$('phScannerHelp').textContent='Camera permission was not available. Enter the barcode below.'}}
+  }
+  function stopScan(){const v=$('phScannerVideo');if(v?.srcObject){v.srcObject.getTracks().forEach(t=>t.stop());v.srcObject=null}if(v){v.classList.add('hidden')}}
+  function findBarcode(){const code=$('phScannerManual').value.trim();if(!code)return;const m=medicines.find(x=>x.barcode===code);if(m){$('phSearch').value=code;renderList();$('phScannerOverlay').classList.add('hidden');$('phScannerOverlay').classList.remove('flex');stopScan();toast('Medicine found')}else toast('Barcode not found.',false)}
+  $('gridPharmacyBtn')?.addEventListener('click',open);$('closePharmacyBtn')?.addEventListener('click',close);
+  $('phAddBtn')?.addEventListener('click',()=>openForm());$('phMedicineFormClose')?.addEventListener('click',closeForm);$('phMedicineCancel')?.addEventListener('click',closeForm);$('phMedicineSave')?.addEventListener('click',saveMedicine);$('phGenerateBarcode')?.addEventListener('click',genBarcode);
+  $('phStockInBtn')?.addEventListener('click',()=>openAction('', 'in'));$('phAdjustBtn')?.addEventListener('click',()=>openAction('', 'adjust'));$('phStockActionClose')?.addEventListener('click',closeAction);$('phActionCancel')?.addEventListener('click',closeAction);$('phActionSave')?.addEventListener('click',saveAction);
+  $('phHistoryBtn')?.addEventListener('click',()=>{$('phHistoryOverlay').classList.remove('hidden');$('phHistoryOverlay').classList.add('flex');renderHistory()});$('phHistoryClose')?.addEventListener('click',()=>{$('phHistoryOverlay').classList.add('hidden');$('phHistoryOverlay').classList.remove('flex')});
+  $('phDeleteYes')?.addEventListener('click',deleteMedicine);$('phDeleteNo')?.addEventListener('click',closeDelete);$('phScannerClose')?.addEventListener('click',()=>{$('phScannerOverlay').classList.add('hidden');$('phScannerOverlay').classList.remove('flex');stopScan()});$('phScannerFind')?.addEventListener('click',findBarcode);$('phScanBtn')?.addEventListener('click',startScan);
+  ['phSearch','phCategoryFilter','phSupplierFilter','phRackFilter','phStatusFilter','phSort'].forEach(id=>$(id)?.addEventListener('input',renderList));['phCategoryFilter','phSupplierFilter','phRackFilter','phStatusFilter','phSort'].forEach(id=>$(id)?.addEventListener('change',renderList));
+  $('phExpiryBtn')?.addEventListener('click',()=>{$('phStatusFilter').value='soon';renderList()});
+  // Seed nothing: staff starts with a clean pharmacy list.
+
+  // ---------- COUNTER SALE / BILLING ----------
+  const SALES='pharmacySales', RETURNS='pharmacySalesReturns';
+  let saleCart=[], lastSale=null;
+  const readSales=()=>read(SALES,[]), saveSales=v=>save(SALES,v);
+  const billNo=()=>{const d=new Date();return 'PH-'+d.getFullYear().toString().slice(-2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(Date.now()).slice(-5)};
+  function saleCalc(){
+    const subtotal=saleCart.reduce((a,x)=>a+(x.qty*x.rate),0);
+    const discount=Math.min(subtotal,Math.max(0,Number($('phSaleDiscount')?.value)||0));
+    const taxable=Math.max(0,subtotal-discount); const gstRate=Math.max(0,Number($('phSaleGst')?.value)||0); const gst=taxable*gstRate/100; const total=taxable+gst;
+    return {subtotal,discount,gstRate,gst,total};
+  }
+  function renderSaleTotals(){const c=saleCalc();const cash=Math.max(0,Number($('phSaleCash')?.value)||0);const remaining=Math.max(0,c.total-cash);$('phSaleTotals').innerHTML=`<div class="flex justify-between"><span>Subtotal</span><b>${money(c.subtotal)}</b></div><div class="flex justify-between"><span>Discount</span><b>- ${money(c.discount)}</b></div><div class="flex justify-between"><span>GST ${c.gstRate}%</span><b>${money(c.gst)}</b></div><div class="flex justify-between text-lg pt-2 border-t"><b>Grand Total</b><b>${money(c.total)}</b></div>`;if($('phSaleUpiRemaining'))$('phSaleUpiRemaining').textContent=money(remaining);if($('phSalePaid'))$('phSalePaid').value=Math.min(c.total,cash+remaining).toFixed(2);}
+  function renderSaleCart(){const box=$('phSaleCart');$('phSaleEmpty').classList.toggle('hidden',saleCart.length>0);box.innerHTML=saleCart.map((x,i)=>`<div class="p-3 flex gap-2 items-center"><div class="flex-1 min-w-0"><b class="text-xs">${esc(x.name)}</b><div class="text-[10px] text-slate-500">Batch ${esc(x.batch||'-')} • Exp ${esc(x.expiryDate||'-')} • ${money(x.rate)}</div></div><div class="flex items-center gap-1"><button type="button" class="phQtyMinus bg-slate-100 rounded-lg w-8 h-8 font-black" data-i="${i}">−</button><span class="w-7 text-center text-xs font-black">${x.qty}</span><button type="button" class="phQtyPlus bg-slate-100 rounded-lg w-8 h-8 font-black" data-i="${i}">+</button><button type="button" class="phQtyDel text-red-600 w-8 h-8 font-black" data-i="${i}">×</button></div><b class="text-xs w-20 text-right">${money(x.qty*x.rate)}</b></div>`).join('');renderSaleTotals();}
+  function searchSale(){syncFromMaster();const q=($('phSaleSearch').value||'').trim().toLowerCase();if(!q){$('phSaleResults').innerHTML='<div class="p-4 text-center text-xs text-slate-400">Type medicine name, generic, barcode or batch.</div>';return}const arr=medicines.filter(m=>Number(m.stock)>0&&!isExpired(m)&&[m.name,m.generic,m.barcode,m.batch].some(v=>String(v||'').toLowerCase().includes(q))).sort((a,b)=>{const ea=a.expiryDate||'9999-12-31',eb=b.expiryDate||'9999-12-31';return ea.localeCompare(eb)}).slice(0,30);$('phSaleResults').innerHTML=arr.length?arr.map(m=>`<button type="button" class="w-full text-left border rounded-xl p-3 bg-slate-50 hover:bg-emerald-50" data-ph-sale-id="${esc(m.id)}"><div class="flex justify-between gap-2"><b class="text-xs">${esc(m.name)}</b><b class="text-xs text-emerald-700">${money(m.selling)}</b></div><div class="text-[10px] text-slate-500">Batch ${esc(m.batch||'-')} • Exp ${esc(m.expiryDate||'-')} • ${esc(m.generic||'')}</div></button>`).join(''):'<div class="p-4 text-center text-xs text-red-500">No available medicine found.</div>'}
+  function addSaleMedicine(id){const m=medicines.find(x=>x.id===id);if(!m||Number(m.stock)<=0){toast('Medicine is out of stock.',false);return}const existing=saleCart.find(x=>x.medicineId===m.id);if(existing){if(existing.qty+1>Number(m.stock)){toast('Not enough stock.',false);return}existing.qty++;}else saleCart.push({medicineId:m.id,name:m.name,batch:m.batch,expiryDate:m.expiryDate,rate:Number(m.selling||0),qty:1});renderSaleCart();}
+  function openCounter(){syncFromMaster();saleCart=[];$('phSaleSearch').value='';$('phSaleCustomer').value='';$('phSalePhone').value='';$('phSaleDiscount').value='0';$('phSaleGst').value='0';$('phSalePaid').value='0';$('phSaleCash').value='0';$('phSaleBillNo').textContent='New Bill';$('phCounterOverlay').classList.remove('hidden');$('phCounterOverlay').classList.add('flex');renderSaleCart();}
+  function closeCounter(){$('phCounterOverlay').classList.add('hidden');$('phCounterOverlay').classList.remove('flex');}
+  function completeSale(){
+    if(!saleCart.length){toast('Add at least one medicine.',false);return}const c=saleCalc();const cash=Math.max(0,Number($('phSaleCash').value)||0);const upi=Math.max(0,c.total-cash);const paid=c.total;const method=upi>0.009?(cash>0?'Cash + UPI':'UPI'):'Cash';
+    for(const x of saleCart){const m=medicines.find(v=>v.id===x.medicineId);if(!m||x.qty>Number(m.stock)){toast(`Not enough stock for ${x.name}.`,false);return}}
+    const now=new Date().toISOString();const sale={id:'PHS-'+Date.now(),billNo:billNo(),date:now,customer:$('phSaleCustomer').value.trim(),phone:$('phSalePhone').value.trim(),items:saleCart.map(x=>({...x})),...c,paymentMethod:method,cashPaid:cash,upiPaid:upi,amountPaid:paid,balance:0,status:'Completed'};
+    sale.items.forEach(x=>{const m=medicines.find(v=>v.id===x.medicineId);const before=Number(m.stock||0);m.stock=before-x.qty;syncToMaster(m);history.unshift({id:'PHH-'+Date.now()+Math.random(),medicineId:m.id,medicine:m.name,type:'sale',quantity:x.qty,before,after:m.stock,note:`Bill ${sale.billNo}`,rack:m.rack,date:now})});save(KEY,medicines);save(HIST,history);const sales=readSales();sales.unshift(sale);saveSales(sales);lastSale=sale;renderAll();renderSaleInvoice(sale);toast(`Bill ${sale.billNo} completed`);}
+  function renderSaleInvoice(s){const itemsHtml=s.items.map(x=>'<div class="flex justify-between gap-2 text-xs"><div><b>'+esc(x.name)+'</b><div class="text-slate-500">Batch '+esc(x.batch||'-')+' • Qty '+x.qty+' • '+money(x.rate)+'</div></div><b>'+money(x.qty*x.rate)+'</b></div>').join('');$('phSaleInvoiceNo').textContent=s.billNo;$('phSaleInvoiceBody').innerHTML='<div class="text-center border-b pb-3 mb-3"><div class="font-black text-lg">Pharmacy Bill</div><div class="text-xs text-slate-500">'+new Date(s.date).toLocaleString('en-IN')+'</div><div class="text-xs mt-1">'+esc(s.customer||'Walk-in Customer')+' '+(s.phone?'• '+esc(s.phone):'')+'</div></div><div class="space-y-2">'+itemsHtml+'</div><div class="border-t mt-3 pt-3 space-y-1 text-sm"><div class="flex justify-between"><span>Subtotal</span><b>'+money(s.subtotal)+'</b></div><div class="flex justify-between"><span>Discount</span><b>- '+money(s.discount)+'</b></div><div class="flex justify-between"><span>GST '+s.gstRate+'%</span><b>'+money(s.gst)+'</b></div><div class="flex justify-between text-lg"><b>Grand Total</b><b>'+money(s.total)+'</b></div><div class="flex justify-between"><span>Paid ('+esc(s.paymentMethod)+')</span><b>'+money(s.amountPaid)+'</b></div></div>';$('phSaleInvoiceOverlay').classList.remove('hidden');$('phSaleInvoiceOverlay').classList.add('flex');}
+  function printSale(s){const rows=s.items.map(x=>'<div class="row"><span>'+esc(x.name)+' x '+x.qty+'</span><b>₹'+(x.qty*x.rate).toFixed(2)+'</b></div>').join('');const w=document.createElement('iframe');w.style.position='fixed';w.style.right='0';w.style.bottom='0';w.style.width='0';w.style.height='0';w.style.border='0';document.body.appendChild(w);const d=w.contentDocument;d.open();d.write('<html><head><title>'+esc(s.billNo)+'</title><style>body{font-family:Arial;padding:20px}h2{text-align:center}.row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eee}</style></head><body><h2>Pharmacy Bill</h2><div>Bill: '+esc(s.billNo)+'</div><div>'+new Date(s.date).toLocaleString('en-IN')+'</div><hr>'+rows+'<hr><div class="row"><span>Subtotal</span><b>₹'+s.subtotal.toFixed(2)+'</b></div><div class="row"><span>Discount</span><b>-₹'+s.discount.toFixed(2)+'</b></div><div class="row"><span>GST</span><b>₹'+s.gst.toFixed(2)+'</b></div><div class="row"><span>Grand Total</span><b>₹'+s.total.toFixed(2)+'</b></div><div>Payment: '+esc(s.paymentMethod)+'</div></body></html>');d.close();setTimeout(()=>{w.contentWindow.focus();w.contentWindow.print();setTimeout(()=>w.remove(),500)},100);}
+  function showReports(){const sales=readSales();const todayStr=new Date().toISOString().slice(0,10);const todays=sales.filter(s=>s.date.slice(0,10)===todayStr&&s.status==='Completed');const total=todays.reduce((a,s)=>a+s.total,0);$('phExtraTitle').textContent='Sales Reports';$('phExtraBody').innerHTML=`<div class="grid grid-cols-2 gap-2 mb-3"><div class="p-3 rounded-xl bg-slate-50"><div class="text-[10px] text-slate-500">Today Bills</div><b class="text-xl">${todays.length}</b></div><div class="p-3 rounded-xl bg-slate-50"><div class="text-[10px] text-slate-500">Today Sales</div><b class="text-xl">${money(total)}</b></div></div>${sales.slice(0,100).map(s=>`<div class="border rounded-xl p-3 mb-2 flex justify-between"><div><b class="text-xs">${s.billNo}</b><div class="text-[10px] text-slate-500">${new Date(s.date).toLocaleString('en-IN')} • ${esc(s.paymentMethod)}</div></div><b class="text-xs">${money(s.total)}</b></div>`).join('')||'<div class="p-6 text-center text-slate-400">No sales yet.</div>'}`;$('phSalesExtraOverlay').classList.remove('hidden');$('phSalesExtraOverlay').classList.add('flex');}
+  function showReturns(){const sales=readSales().filter(s=>s.status==='Completed');$('phExtraTitle').textContent='Sales Return';$('phExtraBody').innerHTML=`<div class="text-xs text-slate-500 mb-3">Select a previous bill. Returned quantity is added back to the same batch.</div>${sales.slice(0,100).map(s=>`<button type="button" class="w-full text-left border rounded-xl p-3 mb-2" data-ph-return-bill="${esc(s.id)}"><div class="flex justify-between"><b class="text-xs">${s.billNo}</b><b>${money(s.total)}</b></div><div class="text-[10px] text-slate-500">${new Date(s.date).toLocaleString('en-IN')} • ${esc(s.customer||'Walk-in')}</div></button>`).join('')||'<div class="p-6 text-center text-slate-400">No bills yet.</div>'}`;$('phSalesExtraOverlay').classList.remove('hidden');$('phSalesExtraOverlay').classList.add('flex');}
+  function chooseReturn(id){const s=readSales().find(x=>x.id===id);if(!s)return;$('phExtraTitle').textContent=`Return ${s.billNo}`;$('phExtraBody').innerHTML=`<div class="space-y-2">${s.items.map((x,i)=>`<div class="border rounded-xl p-3"><div class="flex justify-between"><b class="text-xs">${esc(x.name)}</b><span class="text-[10px]">Sold ${x.qty}</span></div><input id="phRetQty${i}" type="number" min="0" max="${x.qty}" value="0" class="mt-2 w-full px-3 py-2 rounded-xl border" placeholder="Return quantity"><input id="phRetReason${i}" class="mt-2 w-full px-3 py-2 rounded-xl border" placeholder="Return reason"></div>`).join('')}<button id="phSaveReturn" class="w-full bg-orange-500 text-white py-3 rounded-xl font-black text-xs">Save Return</button></div>`;document.getElementById('phSaveReturn').onclick=()=>saveReturn(s);}
+  function saveReturn(s){let changed=false;const returns=read(RETURNS,[]);s.items.forEach((x,i)=>{const qty=Number($(`phRetQty${i}`)?.value)||0;if(qty>0){const m=medicines.find(v=>v.id===x.medicineId);if(m){const before=Number(m.stock||0);m.stock=before+qty;syncToMaster(m);history.unshift({id:'PHH-'+Date.now()+Math.random(),medicineId:m.id,medicine:m.name,type:'sales-return',quantity:qty,before,after:m.stock,note:`Return ${s.billNo}: ${$(`phRetReason${i}`)?.value.trim()||'No reason'}`,rack:m.rack,date:new Date().toISOString()});returns.unshift({id:'PHR-'+Date.now()+Math.random(),billNo:s.billNo,medicineId:m.id,medicine:m.name,quantity:qty,reason:$(`phRetReason${i}`)?.value.trim()||'No reason',date:new Date().toISOString()});changed=true}}});if(!changed){toast('Enter a return quantity.',false);return}save(KEY,medicines);save(HIST,history);save(RETURNS,returns);renderAll();toast('Return saved and stock added back');showReturns();}
+  async function openSaleQr(s){try{const vpa=typeof getVpa==='function'?getVpa():'';if(!vpa||vpa==='yourvpa@upi'){toast('Please configure your UPI ID first.',false);return}const amount=Math.max(0,Number(s.upiPaid||s.total-(s.cashPaid||0)));if(amount<=0){toast('No UPI amount is remaining.',false);return}const merchant=(typeof merchantNameInput!=='undefined'&&merchantNameInput?.value)||'Pharmacy';const upiUri=`upi://pay?pa=${encodeURIComponent(vpa)}&pn=${encodeURIComponent(merchant)}&am=${amount.toFixed(2)}&cu=INR`;const qrCanvas=await generateQrCode(upiUri);let ov=document.getElementById('phSaleQrOverlay');if(!ov){ov=document.createElement('div');ov.id='phSaleQrOverlay';ov.className='fixed inset-0 bg-slate-950/80 z-[180] hidden items-center justify-center p-4';ov.innerHTML=`<div class="bg-white rounded-3xl p-5 max-w-sm w-full text-center"><h3 class="font-black text-lg">📲 Scan & Pay</h3><div id="phSaleQrInfo" class="text-xs text-slate-500 mt-1"></div><img id="phSaleQrImg" class="mx-auto my-4 w-64 h-64"/><div class="text-2xl font-black text-emerald-700" id="phSaleQrAmount"></div><button id="phSaleQrClose" class="w-full mt-4 bg-slate-100 py-3 rounded-xl font-black text-xs">Close</button></div>`;document.body.appendChild(ov);ov.querySelector('#phSaleQrClose').onclick=()=>{ov.classList.add('hidden');ov.classList.remove('flex')}}const img=ov.querySelector('#phSaleQrImg');img.src=qrCanvas.toDataURL('image/png');ov.querySelector('#phSaleQrInfo').textContent=`${s.billNo} • UPI balance`;ov.querySelector('#phSaleQrAmount').textContent=money(amount);ov.classList.remove('hidden');ov.classList.add('flex')}catch(e){console.error(e);toast('Could not generate the payment QR. Please check the UPI ID.',false)}}
+  $('phCounterSaleBtn')?.addEventListener('click',openCounter);$('phCounterClose')?.addEventListener('click',closeCounter);$('phSaleSearch')?.addEventListener('input',searchSale);$('phSaleCash')?.addEventListener('input',renderSaleTotals);['phSaleDiscount','phSaleGst'].forEach(id=>$(id)?.addEventListener('input',renderSaleTotals));
+  $('phSaleResults')?.addEventListener('click',e=>{const b=e.target.closest('[data-ph-sale-id]');if(b)addSaleMedicine(b.dataset.phSaleId)});$('phSaleCart')?.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const i=Number(b.dataset.i),x=saleCart[i],m=x&&medicines.find(v=>v.id===x.medicineId);if(!x)return;if(b.classList.contains('phQtyPlus')){if(x.qty+1>Number(m.stock)){toast('Not enough stock.',false);return}x.qty++}else if(b.classList.contains('phQtyMinus'))x.qty=Math.max(1,x.qty-1);else if(b.classList.contains('phQtyDel'))saleCart.splice(i,1);renderSaleCart()});
+  $('phCompleteSale')?.addEventListener('click',completeSale);$('phPrintLastSale')?.addEventListener('click',()=>{const s=lastSale||readSales()[0];if(s)printSale(s);else toast('No bill to print.',false)});$('phSaleInvoiceClose')?.addEventListener('click',()=>{$('phSaleInvoiceOverlay').classList.add('hidden');$('phSaleInvoiceOverlay').classList.remove('flex')});$('phSaleInvoiceClose2')?.addEventListener('click',()=>{$('phSaleInvoiceOverlay').classList.add('hidden');$('phSaleInvoiceOverlay').classList.remove('flex')});$('phSaleInvoicePrint')?.addEventListener('click',()=>lastSale&&printSale(lastSale));$('phSaleInvoiceQr')?.addEventListener('click',()=>lastSale&&openSaleQr(lastSale));$('phSalesReport')?.addEventListener('click',showReports);$('phReturnsBtn')?.addEventListener('click',showReturns);$('phExtraClose')?.addEventListener('click',()=>{$('phSalesExtraOverlay').classList.add('hidden');$('phSalesExtraOverlay').classList.remove('flex')});$('phExtraBody')?.addEventListener('click',e=>{const b=e.target.closest('[data-ph-return-bill]');if(b)chooseReturn(b.dataset.phReturnBill)});
+  $('phSaleScan')?.addEventListener('click',()=>{ $('phScanBtn')?.click(); toast('Scan barcode, then use the medicine search to add it.',true); });
+
+  window.pharmacyOpen=open; window.pharmacyClose=close;
+})();
+
+</script>
+
+<!-- GLOBAL CLOSE-BUTTON FALLBACK -->
+<script>
+(function(){
+  function hide(id){
+    const el=document.getElementById(id);
+    if(!el)return;
+    el.classList.add('hidden');
+    el.classList.remove('flex');
+  }
+  function closeById(id){
+    const map={
+      closeAuthModalBtn:['authModalOverlay'],
+      closeVisibilityModalBtn:['visibilityModalOverlay'],
+      closeAlertsModalBtn:['alertsModalOverlay'],
+      closeUpiConfigModalBtn:['upiConfigModalOverlay'],
+      closeMasterInventoryModalBtn:['masterInventoryModalOverlay'],
+      closeAddStockModalBtn:['addStockModalOverlay'],
+      closeSearchModalBtn:['searchModalOverlay'],
+      closeCalcModalBtn:['calcModalOverlay'],
+      closeLedgerModalBtn:['ledgerModalOverlay'],
+      closeKdsModalBtn:['kdsModalOverlay'],
+      closeRestaurantBtn:['restaurantModalOverlay','restaurantBillOverlay','restaurantOrderViewOverlay','restaurantQrOverlay','restaurantInvoiceOverlay','restaurantCancelConfirmOverlay'],
+      restaurantQrClose:['restaurantQrOverlay'],
+      restaurantInvoiceClose:['restaurantInvoiceOverlay'],
+      restaurantInvoiceClose2:['restaurantInvoiceOverlay'],
+      restBillClose:['restaurantBillOverlay'],
+      restViewClose:['restaurantOrderViewOverlay'],
+      restViewCloseBottom:['restaurantOrderViewOverlay'],
+      closeQrModalBtn:['qrResultModal'],
+      closeInvoiceAppBtn:['invoiceAppOverlay','invoicePreviewOverlay'],
+      closeInvoicePreviewBtn:['invoicePreviewOverlay'],
+      invoicePreviewCloseBtn2:['invoicePreviewOverlay'],
+      closeBikeServiceBtn:['bikeServiceModalOverlay','bsJobEditorOverlay','bsInvoiceOverlay'],
+      closePharmacyBtn:['pharmacyModalOverlay','phCounterOverlay','phSaleInvoiceOverlay','phSalesExtraOverlay','phSaleQrOverlay'],
+      bsCloseEditor:['bsJobEditorOverlay'],
+      bsCloseInvoice:['bsInvoiceOverlay']
+    };
+    if(id==='closeDrawerBtn'){
+      const drawer=document.getElementById('sideDrawer');
+      const backdrop=document.getElementById('drawerOverlay');
+      drawer?.classList.add('-translate-x-full');
+      backdrop?.classList.add('opacity-0');
+      setTimeout(()=>backdrop?.classList.add('hidden'),300);
+      return;
+    }
+    (map[id]||[]).forEach(hide);
+    if((map[id]||[]).length)document.body.classList.remove('overflow-hidden');
+  }
+  document.addEventListener('click',function(e){
+    const btn=e.target.closest('button[id]');
+    if(!btn || !/close/i.test(btn.id))return;
+    setTimeout(()=>closeById(btn.id),0);
+  },true);
+  document.addEventListener('click',function(e){
+    const el=e.target;
+    if(!(el instanceof HTMLElement) || !el.id || !/Overlay$/.test(el.id))return;
+    if(el.classList.contains('hidden') || e.target!==el)return;
+    el.classList.add('hidden');
+    el.classList.remove('flex');
+    document.body.classList.remove('overflow-hidden');
+  });
+})();
+</script>
 </body>
 </html>
