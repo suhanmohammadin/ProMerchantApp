@@ -248,6 +248,86 @@ input,select,textarea{min-width:0}
 /* Hide the Low Stock, Out of Stock and Expiry summary cards in My Pharmacy. */
 #pharmacyScreen .pharmacy-alerts, #pharmacyScreen .stock-alerts, #pharmacyScreen .inventory-alerts { display:none !important; }
 </style>
+
+<style id="restaurant-pos-scroll-fix-v2">
+/* RESTAURANT POS SCROLL FIX — does NOT touch modal open/close/display state. */
+
+/* Keep the existing fixed/flex/hidden behavior exactly as the app has it. */
+#restaurantModalOverlay {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Only the existing middle .grow area scrolls vertically. */
+#restaurantModalOverlay > .grow {
+  min-height: 0 !important;
+  height: auto !important;
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior-y: contain !important;
+  touch-action: pan-y !important;
+}
+
+/* Do not create another vertical scroll container for the food grid. */
+#restaurantModalOverlay #restaurantCounterTab,
+#restaurantModalOverlay #restaurantCounterTab > div {
+  min-width: 0 !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+#restaurantModalOverlay #restMenuGrid {
+  min-width: 0 !important;
+  width: 100% !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* Horizontal category swipe remains available on mobile. */
+#restaurantModalOverlay #restCategories {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-x !important;
+  flex-wrap: nowrap !important;
+}
+
+#restaurantModalOverlay #restCategories button {
+  flex: 0 0 auto !important;
+  white-space: nowrap !important;
+}
+
+/* Cart keeps its existing bounded scroll. */
+#restaurantModalOverlay #restCart {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-y !important;
+}
+
+/* Mobile only: keep the cart compact so the main POS can still scroll. */
+@media (max-width: 640px) {
+  #restaurantModalOverlay > .grow {
+    padding-bottom: max(24px, env(safe-area-inset-bottom)) !important;
+  }
+
+  #restaurantModalOverlay #restCart {
+    max-height: 32vh !important;
+  }
+}
+</style>
+
 </head>
 <body class="theme-purple bg-slate-100 text-slate-800 min-h-screen flex flex-col items-center justify-between antialiased selection:bg-purple-500 selection:text-white pb-6">
 
