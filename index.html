@@ -1670,6 +1670,13 @@ input,select,textarea{min-width:0}
   </script>
 
   <script>
+    window.addEventListener('error', (event) => {
+      console.error('[Solid Merchant App] JavaScript error:', event.error || event.message);
+    });
+    window.addEventListener('unhandledrejection', (event) => {
+      console.error('[Solid Merchant App] Unhandled promise rejection:', event.reason);
+    });
+
     function triggerIosPulse(element) {
       if (!element) return;
       element.classList.remove('ios-lookup-active');
@@ -1682,11 +1689,7 @@ input,select,textarea{min-width:0}
 
     function handleLogoLongPress() {
       closeDrawer();
-      localStorage.removeItem('appUnlocked');
-      pinAuthModal.classList.remove('hidden');
-      pinInput.value = '';
-      pinErrorMsg.classList.add('hidden');
-      setTimeout(() => pinInput.focus(), 100);
+      showPinAuth();
     }
 
     function startLogoPress(e) {
@@ -1856,9 +1859,22 @@ input,select,textarea{min-width:0}
       }
     }
 
+    function showPinAuth() {
+      localStorage.removeItem('appUnlocked');
+      pinAuthModal.classList.remove('hidden');
+      pinErrorMsg.classList.add('hidden');
+      pinInput.value = '';
+      setTimeout(() => pinInput.focus(), 80);
+    }
+
+    pinInput.addEventListener('input', () => {
+      pinInput.value = pinInput.value.replace(/\D/g, '').slice(0, 6);
+      pinErrorMsg.classList.add('hidden');
+    });
     submitPinBtn.addEventListener('click', validatePin);
-    pinInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') validatePin();
+    document.getElementById('pinForm')?.addEventListener('submit', (e) => { e.preventDefault(); validatePin(); });
+    pinInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); validatePin(); }
     });
 
     checkAuth();
@@ -2274,7 +2290,7 @@ input,select,textarea{min-width:0}
       toggleModal(upiConfigModalOverlay, false);
     });
 
-    const openMasterInventoryModalBtn = document.getElementById('openMasterInventoryModalBtn');
+    const openMasterInventoryModalBtn = document.getElementById('openMasterInventoryModalBtn') || (() => { const b=document.createElement('button'); b.type='button'; b.id='openMasterInventoryModalBtn'; b.hidden=true; document.body.appendChild(b); return b; })();
     const closeMasterInventoryModalBtn = document.getElementById('closeMasterInventoryModalBtn');
     const masterInventoryModalOverlay = document.getElementById('masterInventoryModalOverlay');
     
@@ -2393,7 +2409,7 @@ input,select,textarea{min-width:0}
     const grandTotalText = document.getElementById('grandTotalText');
     const applyCalcToAmountBtn = document.getElementById('applyCalcToAmountBtn');
 
-    const openLedgerModalBtn = document.getElementById('openLedgerModalBtn');
+    const openLedgerModalBtn = document.getElementById('openLedgerModalBtn') || (() => { const b=document.createElement('button'); b.type='button'; b.id='openLedgerModalBtn'; b.hidden=true; document.body.appendChild(b); return b; })();
     const closeLedgerModalBtn = document.getElementById('closeLedgerModalBtn');
     const ledgerModalOverlay = document.getElementById('ledgerModalOverlay');
     const ledgerDateFilter = document.getElementById('ledgerDateFilter');
@@ -3543,7 +3559,7 @@ input,select,textarea{min-width:0}
   window.bsUpdateStatus=(id,status)=>{const j=jobById(id);if(j){j.status=status;j.updatedAt=new Date().toISOString();save(BS_KEYS.jobs,jobs);renderBS();toast('Moved to '+status+'.')}}
   function showAppConfirm(title,message,onYes){$('appConfirmTitle').textContent=title;$('appConfirmMessage').textContent=message;toggleModal($('appConfirmOverlay'),true);$('appConfirmYes').onclick=()=>{toggleModal($('appConfirmOverlay'),false);onYes&&onYes()};$('appConfirmNo').onclick=()=>toggleModal($('appConfirmOverlay'),false)}
   window.bsDeleteJob=id=>{const j=jobById(id);if(!j)return;showAppConfirm('Delete Service?',`Delete ${j.jobCardNo}? This will also delete its linked invoice and payment records.`,()=>{jobs=jobs.filter(x=>x.id!==id);invoices=invoices.filter(x=>x.jobId!==id);payments=payments.filter(x=>x.jobId!==id);save(BS_KEYS.jobs,jobs);save(BS_KEYS.invoices,invoices);save(BS_KEYS.payments,payments);renderBS();toast('Job card deleted.')})}
-  $('gridBikeServiceBtn').addEventListener('click',openBS);$('openBikeServiceDrawerBtn').addEventListener('click',openBS);$('closeBikeServiceBtn').addEventListener('click',closeBS);
+  $('gridBikeServiceBtn')?.addEventListener('click',openBS);$('openBikeServiceDrawerBtn')?.addEventListener('click',openBS);$('closeBikeServiceBtn')?.addEventListener('click',closeBS);
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){toggleModal(invoiceOverlay,false);toggleModal(editor,false);toggleModal(overlay,false)}})
   window.bsServiceInit=()=>{customers=read(BS_KEYS.customers);bikes=read(BS_KEYS.bikes);jobs=read(BS_KEYS.jobs);invoices=read(BS_KEYS.invoices);payments=read(BS_KEYS.payments);renderBS()}
   window.bsServiceInit();
@@ -3574,7 +3590,7 @@ input,select,textarea{min-width:0}
   function openRest(){closeDrawer();renderAll();toggleModal($('restaurantModalOverlay'),true)}
   function closeRest(){toggleModal($('restaurantModalOverlay'),false);toggleModal($('restaurantBillOverlay'),false)}
 
-  $('gridRestaurantBtn').addEventListener('click',openRest);$('openRestaurantDrawerBtn').addEventListener('click',openRest);$('closeRestaurantBtn').addEventListener('click',closeRest);
+  $('gridRestaurantBtn')?.addEventListener('click',openRest);$('openRestaurantDrawerBtn')?.addEventListener('click',openRest);$('closeRestaurantBtn')?.addEventListener('click',closeRest);
   document.querySelectorAll('.restaurant-tab').forEach(b=>{b.type='button';b.setAttribute('role','tab');b.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();showTab(this.getAttribute('data-tab'))})});
   window.restaurantShowTab=function(tab){showTab(tab)};
   const restaurantModal=$('restaurantModalOverlay');
