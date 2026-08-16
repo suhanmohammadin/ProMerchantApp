@@ -329,6 +329,56 @@ input,select,textarea{min-width:0}
 }
 </style>
 
+
+<style id="restaurant-scroll-and-emoji-final">
+/* Restaurant POS: one stable vertical scroller, including after close/reopen. */
+#restaurantModalOverlay {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  flex-direction: column !important;
+}
+#restaurantModalOverlay.hidden {
+  display: none !important;
+}
+#restaurantModalOverlay:not(.hidden) {
+  display: flex !important;
+}
+#restaurantModalOverlay > .grow {
+  flex: 1 1 0% !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: 0 !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior-y: contain !important;
+  touch-action: pan-y !important;
+}
+#restaurantModalOverlay > .grow > .restaurant-panel {
+  min-height: max-content !important;
+  height: auto !important;
+}
+#restaurantModalOverlay .restaurant-panel.hidden {
+  display: none !important;
+}
+
+/* Native emoji rendering for Restaurant POS. */
+#restaurantModalOverlay,
+#restaurantModalOverlay button,
+#restaurantModalOverlay input,
+#restaurantModalOverlay select,
+#restaurantModalOverlay textarea {
+  font-family: "Segoe UI", "Noto Color Emoji", "Apple Color Emoji",
+               "Segoe UI Emoji", system-ui, sans-serif;
+}
+</style>
+
 </head>
 <body class="theme-purple bg-slate-100 text-slate-800 min-h-screen flex flex-col items-center justify-between antialiased selection:bg-purple-500 selection:text-white pb-6">
 
@@ -869,7 +919,7 @@ input,select,textarea{min-width:0}
         </div>
 
         <div class="flex justify-between items-center text-xs font-semibold text-slate-600 pt-1">
-          <span class="text-amber-700 font-bold">�� Cash Paid (Split):</span>
+          <span class="text-amber-700 font-bold">💵 Cash Paid (Split):</span>
           <input type="number" id="cashSplitInput" inputmode="decimal" value="" min="0" step="1" placeholder="0" class="w-24 px-2 py-1.5 text-right border border-amber-300 rounded-lg font-mono text-xs outline-none bg-amber-50/50 font-bold text-amber-800">
         </div>
 
@@ -1019,11 +1069,11 @@ input,select,textarea{min-width:0}
       <button type="button" id="closeRestaurantBtn" class="text-white/90 p-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold">Close ✕</button>
     </div>
     <div class="bg-white border-b border-slate-200 px-3 sm:px-5 py-2 flex gap-2 overflow-x-auto shrink-0">
-      <button type="button" class="restaurant-tab brand-bg text-white px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap" data-tab="counter" onclick="window.restaurantShowTab(\'counter\');return false;">�� Counter Billing</button>
-      <button type="button" class="restaurant-tab bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap" data-tab="orders" onclick="window.restaurantShowTab(\'orders\');return false;">�� Orders</button>
+      <button type="button" class="restaurant-tab brand-bg text-white px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap" data-tab="counter" onclick="window.restaurantShowTab(\'counter\');return false;">🧾 Counter Billing</button>
+      <button type="button" class="restaurant-tab bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap" data-tab="orders" onclick="window.restaurantShowTab(\'orders\');return false;">📋 Orders</button>
       <button type="button" class="restaurant-tab bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap" data-tab="cancelled" onclick="window.restaurantShowTab(\'cancelled\');return false;">❌ Cancelled Orders</button>
-      <button type="button" class="restaurant-tab bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap" data-tab="menu" onclick="window.restaurantShowTab(\'menu\');return false;">�� Menu Management</button>
-      <button type="button" class="restaurant-tab bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap" data-tab="tables" onclick="window.restaurantShowTab(\'tables\');return false;">�� Tables</button>
+      <button type="button" class="restaurant-tab bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap" data-tab="menu" onclick="window.restaurantShowTab(\'menu\');return false;">🍽️ Menu Management</button>
+      <button type="button" class="restaurant-tab bg-slate-100 text-slate-700 px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap" data-tab="tables" onclick="window.restaurantShowTab(\'tables\');return false;">🪑 Tables</button>
     </div>
     <div class="grow overflow-y-auto bg-slate-100 p-3 sm:p-5">
       <section id="restaurantCounterTab" class="restaurant-panel max-w-7xl mx-auto">
@@ -1042,7 +1092,7 @@ input,select,textarea{min-width:0}
                 <select id="restOrderType" class="rest-input"><option>Dine-In</option><option>Takeaway</option><option>Delivery</option></select>
               </div>
               <div id="restTableWrap" class="grid grid-cols-2 gap-2"><select id="restTable" class="rest-input"><option value="">Select Table</option></select><input id="restNotes" class="rest-input" placeholder="Order notes / special instructions"></div>
-              <div class="flex flex-col sm:flex-row gap-2"><div class="flex gap-2 flex-1"><input id="restMenuSearch" class="rest-input flex-1" placeholder="�� Search food items..."><button type="button" id="restMenuToggle" class="shrink-0 px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 font-black text-xs active:scale-[0.98]">�� Menu</button></div><div id="restCategories" class="hidden flex gap-1 overflow-x-auto pb-1"></div></div>
+              <div class="flex flex-col sm:flex-row gap-2"><div class="flex gap-2 flex-1"><input id="restMenuSearch" class="rest-input flex-1" placeholder="🔎 Search food items..."><button type="button" id="restMenuToggle" class="shrink-0 px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 font-black text-xs active:scale-[0.98]">🍽️ Menu</button></div><div id="restCategories" class="hidden flex gap-1 overflow-x-auto pb-1"></div></div>
               <div id="restMenuGrid" class="hidden grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2"></div>
             </div>
           </div>
@@ -1057,20 +1107,20 @@ input,select,textarea{min-width:0}
               <div class="flex justify-between"><span>GST / Tax Amount</span><b id="restTax">₹0.00</b></div>
               <div class="flex justify-between text-base border-t pt-2"><b>Grand Total</b><b id="restGrandTotal" class="brand-text">₹0.00</b></div>
               <div class="flex justify-between items-center gap-2 pt-2 border-t border-dashed border-slate-200">
-                <span class="text-amber-700 font-bold">�� Cash Paid (Split)</span>
+                <span class="text-amber-700 font-bold">💵 Cash Paid (Split)</span>
                 <input id="restCashSplit" type="number" min="0" step="0.01" inputmode="decimal" value="0" placeholder="0.00" class="rest-mini border-amber-300 bg-amber-50 font-bold text-amber-800">
               </div>
               <div id="restChangeRow" class="hidden flex justify-between items-center bg-emerald-50 border border-emerald-200 rounded-xl px-2.5 py-2 text-xs font-bold text-emerald-800">
-                <span>�� Change to Return</span><b id="restChangeAmount">₹0.00</b>
+                <span>💰 Change to Return</span><b id="restChangeAmount">₹0.00</b>
               </div>
               <div class="flex justify-between items-center bg-slate-50 rounded-xl px-2.5 py-2 text-xs font-bold">
-                <span class="text-slate-500">�� Remaining UPI</span><b id="restRemainingUpi" class="brand-text">₹0.00</b>
+                <span class="text-slate-500">📱 Remaining UPI</span><b id="restRemainingUpi" class="brand-text">₹0.00</b>
               </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
-              <button id="restPaidToggle" type="button" aria-pressed="false" class="w-full bg-slate-100 text-slate-700 border border-slate-200 py-4 rounded-2xl font-black text-sm sm:text-base shadow-sm active:scale-[0.99]">�� PAID</button>
-              <button id="restSendKitchen" class="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-black text-sm sm:text-base shadow-lg active:scale-[0.99]">�� SEND TO KITCHEN</button>
-              <button id="restGenerateQr" type="button" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-black text-sm sm:text-base shadow-lg active:scale-[0.99]">�� GENERATE QR</button>
+              <button id="restPaidToggle" type="button" aria-pressed="false" class="w-full bg-slate-100 text-slate-700 border border-slate-200 py-4 rounded-2xl font-black text-sm sm:text-base shadow-sm active:scale-[0.99]">💳 PAID</button>
+              <button id="restSendKitchen" class="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-black text-sm sm:text-base shadow-lg active:scale-[0.99]">👨‍🍳 SEND TO KITCHEN</button>
+              <button id="restGenerateQr" type="button" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-black text-sm sm:text-base shadow-lg active:scale-[0.99]">📲 GENERATE QR</button>
             </div>
             <p class="text-[10px] text-center text-slate-400 mt-2">Send the order to the existing KDS or generate a UPI QR for the current cart total.</p>
           </div>
@@ -1092,7 +1142,7 @@ input,select,textarea{min-width:0}
       </section>
       <section id="restaurantMenuTab" class="restaurant-panel hidden max-w-7xl mx-auto grid lg:grid-cols-[360px_1fr] gap-4">
         <div class="bg-white rounded-2xl border border-slate-200 p-4 space-y-2"><h4 class="font-black">Add / Edit Food Item</h4><input id="menuEditId" type="hidden"><input id="menuName" class="rest-input" placeholder="Food item name"><input id="menuPrice" class="rest-input" type="number" min="0" step="0.01" placeholder="Price"><select id="menuCategory" class="rest-input"><option>Snacks</option><option>Starters</option><option>Main Course</option><option>Rice</option><option>Biryani</option><option>Beverages</option><option>Desserts</option><option value="__CUSTOM__">＋ Custom Category</option></select><div id="customCategoryBox" class="hidden bg-slate-50 border border-slate-200 rounded-xl p-2 space-y-2"><input id="customCategoryName" class="rest-input" placeholder="Type your food category, e.g. South Indian"><div class="grid grid-cols-2 gap-2"><button type="button" id="addCustomCategoryBtn" class="brand-bg text-white py-2 rounded-lg text-[10px] font-black">Add Category</button><button type="button" id="cancelCustomCategoryBtn" class="bg-white border py-2 rounded-lg text-[10px] font-black">Cancel</button></div></div><div class="mt-2 pt-2 border-t border-slate-200"><div class="text-[10px] font-black text-slate-500 uppercase mb-1">Custom Categories</div><div id="customCategoryList" class="space-y-1"></div></div>
-<div id="customCategoryDeleteConfirm" class="hidden mt-2 bg-red-50 border border-red-200 rounded-xl p-3 space-y-2"><div class="text-[10px] font-black text-red-700">Delete <span id="customCategoryDeleteName"></span>?</div><div class="text-[9px] text-red-600">This category can only be deleted when no food item is using it.</div><div class="grid grid-cols-2 gap-2"><button type="button" id="customCategoryDeleteYes" class="bg-red-600 text-white py-2 rounded-lg text-[10px] font-black">Delete</button><button type="button" id="customCategoryDeleteNo" class="bg-white border border-slate-200 py-2 rounded-lg text-[10px] font-black">Cancel</button></div></div><input id="menuIcon" class="rest-input" placeholder="Emoji / icon (e.g. ��)"><input id="menuGst" class="rest-input" type="number" min="0" step="0.1" value="5" placeholder="GST %"><textarea id="menuPrep" class="rest-input min-h-20" placeholder="Preparation notes"></textarea><label class="flex items-center gap-2 text-xs font-bold"><input id="menuAvailable" type="checkbox" checked> Available at counter</label><div class="grid grid-cols-2 gap-2"><button id="menuSave" class="brand-bg text-white py-2.5 rounded-xl font-bold text-xs">Save Item</button><button id="menuReset" class="bg-slate-100 text-slate-700 py-2.5 rounded-xl font-bold text-xs">Reset</button></div></div>
+<div id="customCategoryDeleteConfirm" class="hidden mt-2 bg-red-50 border border-red-200 rounded-xl p-3 space-y-2"><div class="text-[10px] font-black text-red-700">Delete <span id="customCategoryDeleteName"></span>?</div><div class="text-[9px] text-red-600">This category can only be deleted when no food item is using it.</div><div class="grid grid-cols-2 gap-2"><button type="button" id="customCategoryDeleteYes" class="bg-red-600 text-white py-2 rounded-lg text-[10px] font-black">Delete</button><button type="button" id="customCategoryDeleteNo" class="bg-white border border-slate-200 py-2 rounded-lg text-[10px] font-black">Cancel</button></div></div><input id="menuIcon" class="rest-input" placeholder="Emoji / icon (e.g. 🍔)"><input id="menuGst" class="rest-input" type="number" min="0" step="0.1" value="5" placeholder="GST %"><textarea id="menuPrep" class="rest-input min-h-20" placeholder="Preparation notes"></textarea><label class="flex items-center gap-2 text-xs font-bold"><input id="menuAvailable" type="checkbox" checked> Available at counter</label><div class="grid grid-cols-2 gap-2"><button id="menuSave" class="brand-bg text-white py-2.5 rounded-xl font-bold text-xs">Save Item</button><button id="menuReset" class="bg-slate-100 text-slate-700 py-2.5 rounded-xl font-bold text-xs">Reset</button></div></div>
         <div class="bg-white rounded-2xl border border-slate-200 p-4"><div class="flex justify-between items-center mb-3"><h4 class="font-black">Menu Items</h4><input id="menuSearch" class="rest-input max-w-xs" placeholder="Search menu"></div><div id="menuList" class="grid sm:grid-cols-2 xl:grid-cols-3 gap-2"></div></div>
       </section>
       <section id="restaurantTablesTab" class="restaurant-panel hidden max-w-5xl mx-auto space-y-4"><div class="bg-white p-4 rounded-2xl border border-slate-200"><div class="flex justify-between items-center"><div><h4 class="font-black">Table Layout</h4><p class="text-xs text-slate-500">Available → Occupied → Billing → Available after payment</p></div><button id="addTableBtn" class="brand-bg text-white px-3 py-2 rounded-xl text-xs font-bold">+ Add Table</button></div><div id="restTablesGrid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 mt-4"></div></div></section>
@@ -1327,7 +1377,7 @@ input,select,textarea{min-width:0}
             <div class="bg-white rounded-2xl border p-3 space-y-2">
               <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2">
                 <div class="flex justify-between items-center"><span class="text-xs font-black text-amber-800">�� Cash Paid</span><input id="phSaleCash" type="number" min="0" step="0.01" inputmode="decimal" value="0" class="w-32 px-3 py-2 rounded-lg border border-amber-300 bg-white text-right font-bold" placeholder="0.00"></div>
-                <div class="flex justify-between items-center text-xs"><span class="font-bold text-slate-500">�� Remaining UPI</span><b id="phSaleUpiRemaining" class="text-emerald-700">₹0.00</b></div>
+                <div class="flex justify-between items-center text-xs"><span class="font-bold text-slate-500">📱 Remaining UPI</span><b id="phSaleUpiRemaining" class="text-emerald-700">₹0.00</b></div>
                 <div class="text-[10px] text-slate-500">Pay the remaining amount by UPI using the QR on the bill.</div>
               </div>
               <input id="phSalePaid" type="hidden" value="0">
@@ -3657,13 +3707,13 @@ input,select,textarea{min-width:0}
   const esc=v=>String(v??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));
   function toast(msg,ok=true){let t=$('bikeServiceToast');if(t){t.textContent=msg;t.className='fixed top-5 right-5 z-[120] max-w-sm px-4 py-3 rounded-xl shadow-xl text-xs font-bold '+(ok?'bg-emerald-600 text-white':'bg-red-600 text-white');t.classList.remove('hidden');setTimeout(()=>t.classList.add('hidden'),2500)}else alert(msg)}
   function seed(){if(!menu.length){menu=[
-    {id:'M1',name:'Samosa',price:25,category:'Snacks',icon:'��',gst:5,prep:'Serve hot',available:true},
-    {id:'M2',name:'Paneer Tikka',price:180,category:'Starters',icon:'��',gst:5,prep:'Grill fresh',available:true},
-    {id:'M3',name:'Veg Meals',price:150,category:'Main Course',icon:'��',gst:5,prep:'Full meal',available:true},
-    {id:'M4',name:'Chicken Biryani',price:220,category:'Biryani',icon:'��',gst:5,prep:'Serve with raita',available:true},
-    {id:'M5',name:'Veg Fried Rice',price:140,category:'Rice',icon:'��',gst:5,prep:'Medium spice',available:true},
-    {id:'M6',name:'Fresh Lime Soda',price:60,category:'Beverages',icon:'��',gst:5,prep:'Chilled',available:true},
-    {id:'M7',name:'Gulab Jamun',price:70,category:'Desserts',icon:'��',gst:5,prep:'2 pcs',available:true}
+    {id:'M1',name:'Samosa',price:25,category:'Snacks',icon:'🥟',gst:5,prep:'Serve hot',available:true},
+    {id:'M2',name:'Paneer Tikka',price:180,category:'Starters',icon:'🍢',gst:5,prep:'Grill fresh',available:true},
+    {id:'M3',name:'Veg Meals',price:150,category:'Main Course',icon:'🍛',gst:5,prep:'Full meal',available:true},
+    {id:'M4',name:'Chicken Biryani',price:220,category:'Biryani',icon:'🍗',gst:5,prep:'Serve with raita',available:true},
+    {id:'M5',name:'Veg Fried Rice',price:140,category:'Rice',icon:'🍚',gst:5,prep:'Medium spice',available:true},
+    {id:'M6',name:'Fresh Lime Soda',price:60,category:'Beverages',icon:'🥤',gst:5,prep:'Chilled',available:true},
+    {id:'M7',name:'Gulab Jamun',price:70,category:'Desserts',icon:'🍩',gst:5,prep:'2 pcs',available:true}
   ];save(K.menu,menu)}
   if(!tables.length){tables=Array.from({length:12},(_,i)=>({id:'T'+(i+1),name:'Table '+(i+1),status:'Available'}));save(K.tables,tables)}
   }
@@ -3716,7 +3766,7 @@ function categories(){const cats=['All',...allRestaurantCategories()];$('restCat
     $('restMenuGrid').classList.toggle('hidden',!showMenu);
     const toggle=$('restMenuToggle');
     if(toggle){
-      toggle.textContent=showMenu?'✕ Close Menu':'�� Menu';
+      toggle.textContent=showMenu?'✕ Close Menu':'🍽️ Menu';
       toggle.className='shrink-0 px-4 py-2.5 rounded-xl border font-black text-xs active:scale-[0.98] '+(showMenu?'brand-bg text-white border-transparent':'bg-slate-100 text-slate-700 border-slate-200');
     }
     if(!showMenu){$('restCategories').innerHTML='';$('restMenuGrid').innerHTML='';return}
@@ -3756,7 +3806,7 @@ function categories(){const cats=['All',...allRestaurantCategories()];$('restCat
     $('restCustomGstWrap').classList.toggle('hidden',$('restGstMode').value!=='custom');
   }
   let restaurantPaidQuick=false;
-  function updateRestaurantPaidToggle(){const b=$('restPaidToggle');if(!b)return;b.setAttribute('aria-pressed',restaurantPaidQuick?'true':'false');b.className='w-full py-4 rounded-2xl font-black text-sm sm:text-base shadow-sm active:scale-[0.99] '+(restaurantPaidQuick?'bg-emerald-600 text-white border border-emerald-600':'bg-slate-100 text-slate-700 border border-slate-200');b.textContent=restaurantPaidQuick?'✅ PAID':'�� PAID'}
+  function updateRestaurantPaidToggle(){const b=$('restPaidToggle');if(!b)return;b.setAttribute('aria-pressed',restaurantPaidQuick?'true':'false');b.className='w-full py-4 rounded-2xl font-black text-sm sm:text-base shadow-sm active:scale-[0.99] '+(restaurantPaidQuick?'bg-emerald-600 text-white border border-emerald-600':'bg-slate-100 text-slate-700 border border-slate-200');b.textContent=restaurantPaidQuick?'✅ PAID':'💳 PAID'}
   $('restPaidToggle').addEventListener('click',()=>{restaurantPaidQuick=!restaurantPaidQuick;updateRestaurantPaidToggle()});
   $('restMenuToggle').addEventListener('click',()=>{menuVisible=!menuVisible;renderMenuCounter()});$('restMenuSearch').addEventListener('input',renderMenuCounter);$('restDiscount').addEventListener('input',renderCart);$('restGstMode').addEventListener('change',renderCart);$('restCustomGst').addEventListener('input',renderCart);$('restCashSplit').addEventListener('input',()=>{restaurantPaidQuick=false;updateRestaurantPaidToggle();renderCart()});$('restClearCart').addEventListener('click',()=>{cart=[];restaurantPaidQuick=false;$('restDiscount').value=0;$('restGstMode').value='item';$('restCustomGst').value=5;$('restCashSplit').value=0;updateRestaurantPaidToggle();renderCart()});$('restOrderType').addEventListener('change',()=>{$('restTableWrap').classList.toggle('hidden',$('restOrderType').value!=='Dine-In')});
   updateRestaurantPaidToggle();
@@ -3814,7 +3864,7 @@ function categories(){const cats=['All',...allRestaurantCategories()];$('restCat
   $('restaurantQrClose').addEventListener('click',()=>toggleModal($('restaurantQrOverlay'),false));
   $('restaurantQrOverlay').addEventListener('click',e=>{if(e.target.id==='restaurantQrOverlay')toggleModal($('restaurantQrOverlay'),false)});
   $('restaurantQrDownload').addEventListener('click',()=>{if(!restaurantQrDataUrl)return;const a=document.createElement('a');a.href=restaurantQrDataUrl;a.download=`restaurant-payment-${Date.now()}.png`;document.body.appendChild(a);a.click();a.remove()});
-  $('restaurantQrPrint').addEventListener('click',()=>{if(!restaurantQrDataUrl)return;const w=window.open('','_blank');if(!w){toast('Please allow popups to print the QR.',false);return}w.document.write(`<html><head><title>Restaurant Payment QR</title><style>body{font-family:Arial;text-align:center;padding:24px}img{max-width:90vw;width:600px}</style></head><body><h2>Restaurant Payment QR</h2><img src="${restaurantQrDataUrl}"><script>window.onload=()=>{window.print();setTimeout(()=>window.close(),300)}<\/script></body></html>`);w.document.close()});
+  $('restaurantQrPrint').addEventListener('click',()=>{if(!restaurantQrDataUrl)return;const w=window.open('','_blank');if(!w){toast('Please allow popups to print the QR.',false);return}w.document.write(`<html><head><title>Restaurant Payment QR</title><style>body{font-family:Arial;text-align:center;padding:24px}img{max-width:90vw;width:600px}</style></head><body><h2>Restaurant Payment QR</h2><img src="${restaurantQrDataUrl}"><scr`+`ipt>window.onload=()=>{window.print();setTimeout(()=>window.close(),300)}<\/scr`+`ipt></body></html>`);w.document.close()});
   function restaurantCartInvoice(){
     const c=calc();
     return {invoiceNo:'RINV-'+Date.now(),items:cart.map(x=>{const m=menu.find(y=>y.id===x.id)||x;return {name:m.name||x.name,qty:Number(x.qty)||0,rate:Number(x.price)||0,notes:x.notes||m.prep||''}}),subtotal:c.sub,discount:c.disc,gst:c.tax,total:c.total,gstRate:c.gstRate,gstMode:c.gstMode,cashPaid:c.cashPaid,remainingUpi:c.remainingUpi,paymentStatus:c.remainingUpi<=0?'Paid':(c.cashPaid>0?'Partial':'Unpaid'),customer:$('restCustomer').value.trim()||'Walk-in Customer',phone:$('restPhone').value.trim(),orderType:$('restOrderType').value||'Takeaway',table:$('restTable').value||'',notes:$('restNotes').value.trim(),date:new Date().toLocaleDateString('en-IN'),time:new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})};
@@ -4326,4 +4376,3 @@ $('menuSave').addEventListener('click',()=>{const name=$('menuName').value.trim(
 </script>
 </body>
 </html>
-```
